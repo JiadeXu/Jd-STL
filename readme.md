@@ -1,7 +1,6 @@
 # Jd-STL
-C++ STL 模板实现
-基于侯捷的《STL源码剖析》实现的
-
+基于侯捷的《STL源码剖析》  
+C++ STL 模板实现  
 ## STL 六大组件
 1. 容器（containers）
 2. 算法（algorithms）
