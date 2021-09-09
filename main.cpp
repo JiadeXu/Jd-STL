@@ -12,14 +12,14 @@ using namespace std;
 BEGIN(test_itr)
 int main() {
     int arr[3] = {1, 2, 3};
-    // Jd::advance(arr, 2);
+    // JD::advance(arr, 2);
     int *p = arr;
     cout << *p << endl;
     // advance(arr, 2);
-    Jd::advance(p, 2);
+    JD::advance(p, 2);
     cout << *p << endl;
     int *a = arr;
-    cout << "distance " << Jd::distance(a, p) << endl;
+    cout << "distance " << JD::distance(a, p) << endl;
     cout << "distance " << distance(a, p) << endl;
     return 0;
 }
@@ -32,7 +32,7 @@ auto func = [](int a) {
 
 int main() {
     func(233);
-    Jd::set<int> tree;
+    JD::set<int> tree;
     srand(time(0));
     for (int i = 0; i < 23; i++) {
         int val = rand() % 100;
@@ -48,7 +48,7 @@ int main() {
     cout << "set endl" << endl;
     // tree.output();
     // cout << "set end --------" << endl;
-    Jd::map<int, int> map;
+    JD::map<int, int> map;
     cout << "insert" << endl;
     for (int i = 0 ; i < 13; i++) {
         int key = rand() % 100;
