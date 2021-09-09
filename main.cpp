@@ -1,13 +1,34 @@
 #include <iostream>
 #include <iterator>
+#include <memory>
+#include <vector>
 #include "jd_map.h"
 #include "jd_set.h"
 #include "jd_iterator.h"
+#include "jd_alloc.h"
 
 using namespace std;
 
 #define BEGIN(x) namespace x {
 #define ENDS(x) }
+
+BEGIN(alloc)
+
+template<class T, class Alloc = std::allocator<T> >
+class test_vec {};
+
+int main() {
+    int arr[5] = {0, 1, 2, 3, 4};
+    // std::allocator<int>;
+    
+    vector<int, std::allocator<int> > iv(arr, arr + 5);
+    for (int i = 0 ; i < iv.size(); i++) {
+        cout << iv[i] << " ";
+    }
+    cout << endl;
+    return 0;
+}
+ENDS(alloc)
 
 BEGIN(test_itr)
 int main() {
@@ -71,6 +92,7 @@ int main() {
 ENDS(map_set)
 
 int main() {
-    test_itr::main();
+    // test_itr::main();
+    alloc::main();
     return 0;
 }
