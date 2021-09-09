@@ -338,7 +338,6 @@ COMPK rb_tree<K, V, SKEY, COMPK>::comp;
 template<class K, class V, class SKEY, class COMPK>
 SKEY rb_tree<K, V, SKEY, COMPK>::getKey;
 
-
 template<class V>
 struct less {
     bool operator()(const V &a, const V &b) const {

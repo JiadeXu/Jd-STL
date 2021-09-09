@@ -1,9 +1,31 @@
 #include <iostream>
+#include <iterator>
 #include "jd_map.h"
 #include "jd_set.h"
+#include "jd_iterator.h"
 
 using namespace std;
 
+#define BEGIN(x) namespace x {
+#define ENDS(x) }
+
+BEGIN(test_itr)
+int main() {
+    int arr[3] = {1, 2, 3};
+    // Jd::advance(arr, 2);
+    int *p = arr;
+    cout << *p << endl;
+    // advance(arr, 2);
+    Jd::advance(p, 2);
+    cout << *p << endl;
+    int *a = arr;
+    cout << "distance " << Jd::distance(a, p) << endl;
+    cout << "distance " << distance(a, p) << endl;
+    return 0;
+}
+ENDS(test_itr)
+
+BEGIN(map_set)
 auto func = [](int a) {
     cout << "auto a " << a << endl;
 };
@@ -43,5 +65,12 @@ int main() {
         cout << (*i).first << " " << (*i).second << endl;
     }
     cout << endl;
+    return 0;
+}
+
+ENDS(map_set)
+
+int main() {
+    test_itr::main();
     return 0;
 }
