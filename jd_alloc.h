@@ -14,6 +14,7 @@
 #include <climits>
 #include <iostream>
 #include "jd_macro.h"
+#include "default_alloc_template.h"
 
 JD_SPACE_BEGIN
 template<class T>
@@ -82,6 +83,31 @@ public:
 
 	size_type max_size() const {
 		return size_type(UINT_MAX / sizeof(T));
+	}
+};
+
+template<class T, class Alloc = __default_alloc_template<false, 1> >
+class simple_alloc {
+public:
+	typedef T 			value_type;
+	typedef T* 			pointer;
+	typedef const T* 	const_pointer;
+	typedef T& 			reference;
+	typedef const T& 	const_reference;
+	typedef size_t 		size_type;
+	typedef ptrdiff_t 	difference_type;
+
+	static T *allocate(size_t n) {
+		return n == 0 ? 0 : (T*) Alloc::allocate(n * sizeof(T));
+	}
+	static T *allocate(void) {
+		return Alloc::allocate(sizeof(T));
+	}
+	static void deallocate(T *p, size_t n) {
+		Alloc::deallocate(p, n * sizeof(T));
+	}
+	static void deallocate(T *p) {
+		Alloc::deallocate(p, sizeof(T));
 	}
 };
 

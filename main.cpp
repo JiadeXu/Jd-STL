@@ -6,6 +6,7 @@
 #include "jd_set.h"
 #include "jd_iterator.h"
 #include "jd_alloc.h"
+#include "default_alloc_template.h"
 
 using namespace std;
 
@@ -18,10 +19,17 @@ template<class T, class Alloc = std::allocator<T> >
 class test_vec {};
 
 int main() {
-    int arr[5] = {0, 1, 2, 3, 4};
+    // int arr[5] = {0, 1, 2, 3, 4};
+    string arr[5] = {
+        "asd",
+        "asd",
+        "asd",
+        "asd",
+        "asd"
+    };
     // std::allocator<int>;
     
-    vector<int, std::allocator<int> > iv(arr, arr + 5);
+    vector<string, JD::simple_alloc<string> > iv(arr, arr + 5);
     for (int i = 0 ; i < iv.size(); i++) {
         cout << iv[i] << " ";
     }
@@ -90,7 +98,6 @@ int main() {
 }
 
 ENDS(map_set)
-
 int main() {
     // test_itr::main();
     alloc::main();
