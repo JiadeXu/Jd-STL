@@ -18,6 +18,10 @@ BEGIN(alloc)
 template<class T, class Alloc = std::allocator<T> >
 class test_vec {};
 
+void jd_oom_handler() {
+    cout << "jd oom handler" << endl;
+}
+
 int main() {
     // int arr[5] = {0, 1, 2, 3, 4};
     string arr[5] = {
@@ -28,7 +32,7 @@ int main() {
         "asd"
     };
     // std::allocator<int>;
-    
+    JD::malloc_alloc::set_malloc_handler(jd_oom_handler); // 类似std::set_new_handler
     vector<string, JD::simple_alloc<string> > iv(arr, arr + 5);
     for (int i = 0 ; i < iv.size(); i++) {
         cout << iv[i] << " ";

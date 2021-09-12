@@ -15,6 +15,7 @@
 #include <iostream>
 #include "jd_macro.h"
 #include "default_alloc_template.h"
+#include "malloc_alloc_template.h"
 
 JD_SPACE_BEGIN
 template<class T>
@@ -86,7 +87,7 @@ public:
 	}
 };
 
-template<class T, class Alloc = __default_alloc_template<false, 1> >
+template<class T, class Alloc = JD::alloc>
 class simple_alloc {
 public:
 	typedef T 			value_type;
