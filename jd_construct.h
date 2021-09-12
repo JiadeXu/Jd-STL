@@ -29,14 +29,14 @@ inline void destory(T *pointer) {
 
 // destroy 第二版本 接受两个迭代器 此函数设法找出元素的数值型别
 // 没有trivial destructors
-template<class ForwardIterator, class T>
+template<class ForwardIterator>
 inline void __destory_aux(ForwardIterator first, ForwardIterator last, __false_type) {
 	for (; first != last; ++first) {
 		destory(&*first);
 	}
 }
 // 有trivial destructors 就什么也不做 不用调用析构
-template<class ForwardIterator, class T>
+template<class ForwardIterator>
 inline void __destory_aux(ForwardIterator first, ForwardIterator last, __true_type) {}
 
 // 判断元素数值型别 value_type 是否有 trivial destructor

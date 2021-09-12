@@ -8,6 +8,7 @@
 #include "jd_iterator.h"
 #include "jd_alloc.h"
 #include "default_alloc_template.h"
+#include "jd_vector.h"
 
 using namespace std;
 
@@ -34,7 +35,11 @@ int main() {
     };
     // std::allocator<int>;
     JD::malloc_alloc::set_malloc_handler(jd_oom_handler); // 类似std::set_new_handler
-    vector<string, JD::simple_alloc<string> > iv(arr, arr + 5);
+    // JD::vector<string, JD::simple_alloc<string> > iv(arr, arr + 5);
+    JD::vector<string, JD::simple_alloc<string> > iv;
+    for (int i = 0; i < 5; i++) {
+        iv.push_back(arr[i]);
+    }
     std::copy(iv.begin(), iv.begin() + 2, iv.begin() + 3);
     for (int i = 0 ; i < iv.size(); i++) {
         cout << iv[i] << " ";

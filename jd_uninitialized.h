@@ -30,7 +30,8 @@ inline ForwardIterator __uninitialized_fill_n_aux(ForwardIterator first, Size n,
 
 template<class ForwardIterator, class Size, class T>
 inline ForwardIterator __uninitialized_fill_n_aux(ForwardIterator first, Size n, const T &x, __true_type) {
-	return fill_n(first, n, x); // 6.4.2节
+	// return JD::fill_n(first, n, x); // 6.4.2节
+	return std::fill_n(first, n, x); // 6.4.2节
 }
 
 template<class ForwardIterator, class Size, class T, class T1>
@@ -73,7 +74,7 @@ inline ForwardIterator uninitialized_fill(ForwardIterator first, ForwardIterator
 
 // copy
 // 不是 Plain Old Data
-template<class InputIteartor, class ForwardIterator, class T>
+template<class InputIteartor, class ForwardIterator>
 inline ForwardIterator __uninitialized_copy_aux(InputIteartor first, InputIteartor last, ForwardIterator result, __false_type) {
 	ForwardIterator cur = result;
 	for (; first != last; ++first, ++cur) {
@@ -83,7 +84,7 @@ inline ForwardIterator __uninitialized_copy_aux(InputIteartor first, InputIteart
 }
 
 // 是 Palin Old Data 类型
-template<class InputIteartor, class ForwardIterator, class T>
+template<class InputIteartor, class ForwardIterator>
 inline ForwardIterator __uninitialized_copy_aux(InputIteartor first, InputIteartor last, ForwardIterator result, __true_type) {
 	return std::copy(first, last, result); // 调用STL copy
 }
