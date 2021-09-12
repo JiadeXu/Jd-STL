@@ -27,7 +27,7 @@ public:
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 public:
-	typedef simple_alloc<T, Alloc> data_alloc;
+	typedef simple_alloc<value_type, Alloc> data_alloc;
 };
 
 JD_SPACE_END
