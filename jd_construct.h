@@ -12,6 +12,7 @@
 #include "jd_type_traits.h"
 #include "jd_iterator.h"
 #include "jd_algobase.h"
+#include <iostream>
 #include <new>
 
 JD_SPACE_BEGIN
@@ -31,7 +32,7 @@ inline void destory(T *pointer) {
 // 没有trivial destructors
 template<class ForwardIterator>
 inline void __destory_aux(ForwardIterator first, ForwardIterator last, __false_type) {
-	for (; first != last; ++first) {
+	for (; first < last; ++first) {
 		destory(&*first);
 	}
 }

@@ -96,8 +96,10 @@ public:
 	// 清除[first, last) 内的所有元素
 	iterator erase(iterator first, iterator last) {
 		iterator i = std::copy(last, finish, first);
+		size_type dis = finish - i;
 		destory(i, finish);
-		finish = finish - (last - finish);
+		finish = finish - dis;
+		return first;
 	}
 	void resize(size_type new_size, const T &x) {
 		if (new_size < size()) {

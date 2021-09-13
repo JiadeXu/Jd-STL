@@ -8,6 +8,7 @@
 #ifndef _DEFAULT_ALLOC_TEMPLATE_H
 #define _DEFAULT_ALLOC_TEMPLATE_H
 #include <cstddef>
+#include <iostream>
 #include "malloc_alloc_template.h"
 
 JD_SPACE_BEGIN
@@ -76,7 +77,6 @@ typename __default_alloc_template<threads, inst>::obj * volatile __default_alloc
 template<bool threads, int inst>
 void* __default_alloc_template<threads, inst>::allocate(size_t n) {
 	// n必须大于0
-	if (n == 0) n = 1;
 	obj * volatile * my_free_list;
 	obj* result;
 	// 大于128直接用malloc
@@ -88,7 +88,7 @@ void* __default_alloc_template<threads, inst>::allocate(size_t n) {
 	result = *my_free_list;
 	if (result == 0) {
 		// 没找到就填充相应大小的free list
-		void *r = refill(n);
+		void *r = refill(ROUD_UP(n));
 		return r;
 	}
 	// 调整free list；链表去除头部
@@ -139,6 +139,7 @@ void* __default_alloc_template<threads, inst>::refill(size_t n) {
 		next_obj = (obj *)((char *) next_obj + n);
 		if (i == nobjs - 1) {
 			current_obj->free_list_link = 0;
+			break;
 		} else {
 			current_obj->free_list_link = next_obj;
 		}
@@ -160,9 +161,9 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int &nob
 		return result;
 	} else if (bytes_left >= size) {
 		// 内存池中只够一个（含）以上的区块
-		nobjs = total_bytes / size;
+		nobjs = bytes_left / size;
 		total_bytes = nobjs * size;
-		result = start_free + total_bytes;
+		result = start_free;
 		start_free += total_bytes;
 		return result;
 	} else {
@@ -213,7 +214,7 @@ char* __default_alloc_template<threads, inst>::chunk_alloc(size_t size, int &nob
 #ifdef __USE_MALLOC
 typedef malloc_alloc alloc;
 #else
-typedef __default_alloc_template<false, 1> alloc;
+typedef __default_alloc_template<0, 0> alloc;
 #endif
 JD_SPACE_END
 #endif
