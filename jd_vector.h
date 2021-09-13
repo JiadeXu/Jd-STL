@@ -113,11 +113,15 @@ public:
 	void clear() {
 		erase(begin(), end());
 	}
+public:
+	value_type& operator[](size_type idx) {
+		return *(begin() + idx);
+	}
 protected:
 	// 配置空间并填满内容
 	iterator allocate_and_fill(size_type n, const T& x) {
 		iterator result = data_alloc::allocate(n);
-		uninitialized_fill_n(start, n, x);
+		JD::uninitialized_fill_n(start, n, x);
 		return result;
 	}
 };
@@ -184,7 +188,7 @@ void vector<T, Alloc>::insert(iterator position, size_type n, const T &x) {
 				std::fill(position, position + n, x);
 			} else {
 				// 有可能在end插入；位置不够 《》p 127
-				uninitialized_fill_n(finish, n - elems_after, x_copy);
+				JD::uninitialized_fill_n(finish, n - elems_after, x_copy);
 				finish += n - elems_after;
 				JD::uninitialized_copy(position, old_finish, finish);
 				finish += elems_after;
@@ -202,7 +206,7 @@ void vector<T, Alloc>::insert(iterator position, size_type n, const T &x) {
 				// 以下首先将插入点之前的数据赋值到新空间中
 				new_finish = JD::uninitialized_copy(start, finish, new_start);
 				// 将新增元素填入新空间
-				new_finish = uninitialized_fill_n(new_finish, n, x);
+				new_finish = JD::uninitialized_fill_n(new_finish, n, x);
 				// 再将旧的position后的数据赋值
 				new_finish = JD::uninitialized_copy(position, finish, new_finish);
 			}

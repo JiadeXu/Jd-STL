@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include "jd_type_traits.h"
 #include "jd_algobase.h"

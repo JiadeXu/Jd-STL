@@ -41,6 +41,8 @@ int main() {
         iv.push_back(arr[i]);
     }
     std::copy(iv.begin(), iv.begin() + 2, iv.begin() + 3);
+    iv.insert(iv.begin() + 2, 3, string("aslkdjlas"));
+    // std::sort(iv.begin(), iv.end());
     for (int i = 0 ; i < iv.size(); i++) {
         cout << iv[i] << " ";
     }
