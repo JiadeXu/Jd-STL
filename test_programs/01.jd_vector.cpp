@@ -25,7 +25,7 @@ int main() {
     // return 0;
     // std::allocator<int>;
     JD::malloc_alloc::set_malloc_handler(jd_oom_handler); // 类似std::set_new_handler
-    JD::vector<string, JD::alloc > iv;
+    JD::vector<string> iv;
     for (int i = 0; i < 5; i++) {
         iv.push_back(arr[i]);
     }
