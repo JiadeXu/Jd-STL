@@ -124,7 +124,10 @@ int main() {
         ilist.push_back(11);
     }
     itr = ilist.begin() + 3;
+    std::cout << "start splice" << std::endl;
+    display(ilist.begin(), ilist.end());
     ilist.splice(ilist.begin(), itr, ilist.end());
+    std::cout << "after splice ";
     display(ilist.begin(), ilist.end());
     ilist.unique();
     display(ilist.begin(), ilist.end());

@@ -101,7 +101,7 @@ public:
 protected:
 	link_type node; // 只要一个指针即可表示整个环状双向链表
 	// 配置一个节点并返回
-	link_type get_node() { return list_node_allocator::allocate(1); }
+	link_type get_node() { return list_node_allocator::allocate(); }
 	// 释放
 	void put_node(link_type p) { list_node_allocator::deallocate(p); }
 	// 生产构造并配置一个 node 带值
@@ -135,6 +135,10 @@ protected:
 		}
 	}
 public:
+	~list() {
+		clear();
+		put_node(node);
+	}
 	list() { empty_initialize(); }
 	iterator begin() { return iterator(node->next); }
 	iterator end() { return iterator(node); }
@@ -290,7 +294,7 @@ public:
 		}
 		swap(counter[fill - 1]);
 	}
-	
+
 	void swap(JD::list<T, Alloc> &x) {
 		link_type tmp;
 		tmp = this->node;

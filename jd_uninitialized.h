@@ -59,7 +59,8 @@ inline ForwardIterator __uninitialized_fill_aux(ForwardIterator first, ForwardIt
 
 template<class ForwardIterator, class T>
 inline ForwardIterator __uninitialized_fill_aux(ForwardIterator first, ForwardIterator last, const T &x, __true_type) {
-	return std::fill(first, last, x); // std
+	std::fill(first, last, x); // std
+	return first;
 }
 
 template<class ForwardIterator, class T, class T1>

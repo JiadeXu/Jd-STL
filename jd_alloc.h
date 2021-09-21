@@ -101,8 +101,8 @@ public:
 	static T *allocate(size_t n) {
 		return n == 0 ? 0 : (T*) Alloc::allocate(n * sizeof(T));
 	}
-	static T *allocate(void) {
-		return Alloc::allocate(sizeof(T));
+	static T *allocate() {
+		return (T *)Alloc::allocate(sizeof(T));
 	}
 	static void deallocate(T *p, size_t n) {
 		Alloc::deallocate(p, n * sizeof(T));
