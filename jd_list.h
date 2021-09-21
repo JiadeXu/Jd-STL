@@ -94,6 +94,7 @@ public:
 	typedef value_type* pointer;
 	typedef __list_iterator<T, T&, pointer> iterator;
 	typedef value_type& reference;
+	typedef const value_type const_reference;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 
@@ -147,7 +148,10 @@ public:
 		return JD::distance(begin(), end());
 	}
 	reference front() { return *(begin()); }
-
+	reference back() {
+		iterator tmp = end();
+		return *(--tmp);
+	}
 	iterator insert(iterator position, const T &x) {
 		link_type tmp = create_node(x);
 		tmp->next = position.node;
@@ -177,6 +181,10 @@ public:
 
 	void pop_front() {
 		erase(begin());
+	}
+	void pop_back() {
+		iterator tmp = end();
+		erase(--tmp);
 	}
 
 	// 清除整个链表

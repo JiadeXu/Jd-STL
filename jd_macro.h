@@ -7,6 +7,7 @@
 #define JD_SIZE_T unsigned long
 
 #define __JD_STL_TEMPLATE_NULL template<>
+#define __JD_STL_TEMPLATE_ARGS <>
 
 #ifdef __JD_USE_EXCEPTIONS
 #define __JD_TRY   try

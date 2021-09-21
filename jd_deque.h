@@ -255,18 +255,18 @@ protected:
 		finish.set_node(new_nstart + old_num_nodes - 1);
 	}
 
-	void reverse_map_at_back(size_type nodes_to_add = 1) {
+	void reserve_map_at_back(size_type nodes_to_add = 1) {
 		// map中剩余的node的数量不够了
 		if (nodes_to_add + 1 > map_size - (finish.node - map)) {
-			std::cout << "reverse_map_at_back " << std::endl;
+			// std::cout << "reserve_map_at_back " << std::endl;
 			reallocate_map(nodes_to_add, false);
 		}
 	}
 
-	void reverse_map_at_front(size_type nodes_to_add = 1) {
+	void reserve_map_at_front(size_type nodes_to_add = 1) {
 		if (nodes_to_add + 1 > start.node - map) {
 			// 前端的备用节点不足
-			std::cout << "reverse_map_at_front " << std::endl;
+			// std::cout << "reserve_map_at_front " << std::endl;
 			reallocate_map(nodes_to_add, true);
 		}
 	}
@@ -274,7 +274,7 @@ protected:
 	void push_back_aux(const value_type &x) {
 		// 只有当finish.cur == finish.last - 1时才会调用
 		value_type t_copy = x;
-		reverse_map_at_back(); // 若符合某种条件则必须重换一个map
+		reserve_map_at_back(); // 若符合某种条件则必须重换一个map
 		*(finish.node + 1) = allocate_node(); // 配置一个新节点
 		__JD_TRY {
 			construct(finish.cur, t_copy);
@@ -287,7 +287,7 @@ protected:
 	// start.cur == start.first时才会被调用 push_front_aux
 	void push_front_aux(const value_type &x) {
 		value_type t_copy = x;
-		reverse_map_at_front();
+		reserve_map_at_front();
 		*(start.node - 1) = allocate_node();
 		__JD_TRY {
 			start.set_node(start.node - 1);
@@ -446,7 +446,6 @@ public:
 		value_type x_copy = x;
 		if (index < size() / 2) { // 前面的元素少
 			push_front(front()); // 在最前端加入与第一个元素同值的元素 然后标识记号然后移动
-			
 			iterator front1 = start;
 			++front1;
 			iterator front2 = front1;
