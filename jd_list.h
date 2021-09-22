@@ -46,12 +46,12 @@ struct __list_iterator {
 	// 对节点取值 取的节点的值
 	reference operator*() const { return node->data; }
 	pointer operator->() const { return &(operator*()); }
-
+	// 前++
 	self& operator++() {
 		node = node->next;
 		return *this;
 	}
-
+	// 后++
 	self operator++(int) {
 		self tmp = *this;
 		++(*this);
@@ -123,7 +123,7 @@ protected:
 		node->next = node;
 	}
 
-	// 将 (first, last] 内的所有元素移动到position之前 左闭右开
+	// 将 [first, last) 内的所有元素移动到position之前 左闭右开
 	void transfer(iterator position, iterator first, iterator last) {
 		if (position != last) {
 			last.node->prev->next = position.node;
@@ -236,7 +236,7 @@ public:
 			transfer(position, x.begin(), x.end());
 		}
 	}
-	// 将 i所指向元素结合与 position 所指位置之前
+	// 将 i所指向元素接合于 position 所指位置之前
 	void splice(iterator position, JD::list<T, Alloc> &, iterator i) {
 		iterator j = i;
 		++j;
