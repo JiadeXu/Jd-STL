@@ -185,19 +185,21 @@ int main() {
 		ivec.push_back(ia[i]);
 	}
 	display(ivec.begin(), ivec.end());
-	JD::make_heap(ivec.begin(), ivec.end());
+	auto comp = JD::JDGreat<int>(); // 小顶堆
+	// auto comp = JD::JDLess<int>(); // 大顶堆
+	JD::make_heap(ivec.begin(), ivec.end(), comp);
 	display(ivec.begin(), ivec.end());
 
 	ivec.push_back(7);
-	JD::push_heap(ivec.begin(), ivec.end());
+	JD::push_heap(ivec.begin(), ivec.end(), comp);
 	display(ivec.begin(), ivec.end());
 	
-	JD::pop_heap(ivec.begin(), ivec.end());
+	JD::pop_heap(ivec.begin(), ivec.end(), comp);
 	std::cout << ivec.back() << std::endl; // 输出的是9 但并未被弹出
 	ivec.pop_back();
 	display(ivec.begin(), ivec.end());
 
-	JD::sort_heap(ivec.begin(), ivec.end());
+	JD::sort_heap(ivec.begin(), ivec.end(), comp);
 	display(ivec.begin(), ivec.end());
 	return 0;
 }
