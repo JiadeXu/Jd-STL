@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "../jd_algorithm.h"
 #include "../jd_vector.h"
+#include "../jd_queue.h"
 #include <ctime>
 using namespace std;
 
@@ -187,20 +188,35 @@ int main() {
 	display(ivec.begin(), ivec.end());
 	auto comp = JD::JDGreat<int>(); // 小顶堆
 	// auto comp = JD::JDLess<int>(); // 大顶堆
-	JD::make_heap(ivec.begin(), ivec.end(), comp);
+	// auto comp = [](const int &a, const int &b) {
+	// 	return a < b; // 大顶堆
+	// };
+	JD::make_heap(ivec.begin(), ivec.end());
 	display(ivec.begin(), ivec.end());
 
 	ivec.push_back(7);
-	JD::push_heap(ivec.begin(), ivec.end(), comp);
+	JD::push_heap(ivec.begin(), ivec.end());
 	display(ivec.begin(), ivec.end());
 	
-	JD::pop_heap(ivec.begin(), ivec.end(), comp);
+	JD::pop_heap(ivec.begin(), ivec.end());
 	std::cout << ivec.back() << std::endl; // 输出的是9 但并未被弹出
 	ivec.pop_back();
 	display(ivec.begin(), ivec.end());
 
-	JD::sort_heap(ivec.begin(), ivec.end(), comp);
+	JD::sort_heap(ivec.begin(), ivec.end());
 	display(ivec.begin(), ivec.end());
+
+	// JD::priority_queue<int> myp; // 默认是大顶堆
+	JD::priority_queue<int, JD::vector<int>, JD::JDGreat<int> > myp; // 小顶堆
+	for (int i = 0; i < 9; i++) {
+		myp.push(ia[i]);
+	}
+	std::cout << "jd priority queue: ";
+	while(!myp.empty()) {
+		std::cout << myp.top() << " ";
+		myp.pop();
+	}
+	std::cout << std::endl;
 	return 0;
 }
 SEND(t3)

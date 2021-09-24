@@ -27,6 +27,7 @@ public:
 	typedef value_type* pointer;
 	typedef value_type* iterator;
 	typedef value_type& reference;
+	typedef const value_type& const_reference;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 protected:
@@ -53,7 +54,7 @@ public:
 	size_type capacity() const {
 		return size_type(end_of_storage - begin());
 	}
-	bool empty() const { return begin() == end(); }
+	bool empty() { return begin() == end(); }
 	reference operator[](size_type n) const { return *(start + n); }
 
 	vector(): start(0), finish(0), end_of_storage(0) {}
