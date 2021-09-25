@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include "../jd_list.h"
+#include "../jd_slist.h"
 #include <ctime>
 
 // using namespace std;
@@ -166,8 +167,48 @@ int main() {
 }
 SEND(t2)
 
+SBEGIN(slist_test)
+int main() {
+
+    JD::slist<int> s;
+    s.push_front(233);
+    s.push_front(6);
+    s.push_front(7);
+    s.push_front(4);
+    s.push_front(8);
+    std::cout << s.size() << std::endl;
+    JD::slist<int>::iterator ite = s.begin();
+    JD::slist<int>::iterator ite2 = s.end();
+    for (; ite != ite2; ite++) {
+        std::cout << *ite << " ";
+    }
+    std::cout << std::endl;;
+
+    ite = s.begin();
+    s.insert(ite + 2, 99);
+    s.insert(s.begin(), 34);
+    ite = s.begin();
+    ite2 = s.end();
+    for (; ite != ite2; ++ite) {
+        std::cout << *ite << " ";
+    }
+    std::cout << std::endl;;
+
+    JD::slist<int>::iterator toDelete = s.begin() + 3;
+    std::cout << "toDelete " << *toDelete << " " << *(s.erase(toDelete)) << std::endl;
+    ite = s.begin();
+    ite2 = s.end();
+    for (; ite != ite2; ++ite) {
+        std::cout << *ite << " ";
+    }
+    std::cout << std::endl;;
+    return 0;
+}
+SEND(slist_test)
+
 int main() {
     // t1::main();
-    t2::main();
+    // t2::main();
+    slist_test::main();
     return 0;
 }
