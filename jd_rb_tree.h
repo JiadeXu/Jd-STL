@@ -14,6 +14,7 @@
 #include "jd_macro.h"
 #include "jd_iterator.h"
 #include <cstddef>
+#include <iostream>
 #include <utility>
 
 JD_SPACE_BEGIN
@@ -41,6 +42,97 @@ struct __rb_tree_node_base {
 		return x;
 	}
 };
+
+inline void __rb_tree_rotate_left(__rb_tree_node_base *x, __rb_tree_node_base *&root) {
+	// x为旋转点
+	__rb_tree_node_base *y = x->right;
+	x->right = y->left;
+	// y->left = x;
+	if (y->left != 0) {
+		y->left->parent = x;
+	}
+	y->parent = x->parent;
+	if (x == root) {
+		root = y;
+	} else if (x == x->parent->left) {
+		x->parent->left = y;
+	} else {
+		x->parent->right = y;
+	}
+	y->left = x;
+	x->parent = y;
+}
+
+inline void __rb_tree_rotate_right(__rb_tree_node_base *x, __rb_tree_node_base *&root) {
+	__rb_tree_node_base *y = x->left;
+	x->left = y->right;
+	if (y->right != 0) {
+		y->right->parent = x;
+	}
+	y->parent = x->parent;
+	if (x == root) {
+		root = y;
+	} else if (x == x->parent->right) {
+		x->parent->right = y;
+	} else {
+		x->parent->left = y;
+	}
+	y->right = x;
+	x->parent = y;
+}
+
+inline void __rb_tree_reblance(__rb_tree_node_base *x, __rb_tree_node_base *&root) {
+	x->color = __rb_tree_red; // 新节点必为红
+	// 去除双红的情况
+	while (x != root && x->parent->color == __rb_tree_red) {
+		if (x->parent == x->parent->parent->left) { // 父节点为祖父的左节点
+			// y指向叔父节点
+			__rb_tree_node_base *y = x->parent->parent->right;
+			if (y && y->color == __rb_tree_red) {
+				// 红色节点上浮
+				// 叔父节点存在且为红色节点 祖父变为红节点 父节点和叔父节点 变为黑节点
+				x->parent->color = __rb_tree_black;
+				y->color = __rb_tree_black;
+				x->parent->parent->color = __rb_tree_red;
+				// 跳到路径上的下一个红节点
+				x = x->parent->parent;
+			} else {
+				// 无叔父节点 或叔父节点为黑
+				if (x == x->parent->right) {
+					// 新节点为父节点的右节点 LR型
+					x = x->parent;
+					__rb_tree_rotate_left(x, root); // 第一参数为左旋点
+				}
+				x->parent->color = __rb_tree_black;
+				x->parent->parent->color = __rb_tree_red;
+				__rb_tree_rotate_right(x->parent->parent, root);
+			}
+		} else {
+			// 插入点的父节点为 祖父节点的右节点
+			__rb_tree_node_base *y = x->parent->parent->left;
+			if (y && y->color == __rb_tree_red) {
+				// 红色节点上浮
+				// 叔父节点存在且为红色节点 祖父变为红节点 父节点和叔父节点 变为黑节点
+				x->parent->color = __rb_tree_black;
+				y->color = __rb_tree_black;
+				x->parent->parent->color = __rb_tree_red;
+				// 跳到路径上的下一个红节点
+				x = x->parent->parent;
+			} else {
+				// 无叔父节点或者叔父节点为黑色
+				if (x == x->parent->left) {
+					// RL型
+					x = x->parent;
+					__rb_tree_rotate_right(x, root);
+				}
+				x->parent->color = __rb_tree_black;
+				x->parent->parent->color = __rb_tree_red;
+				__rb_tree_rotate_left(x->parent->parent, root);
+			}
+		}
+	}
+	root->color = __rb_tree_black; // 根节点永远为黑色节点
+}
 
 template<class Value>
 struct __rb_tree_node : public __rb_tree_node_base {
@@ -122,7 +214,12 @@ struct __rb_tree_iterator : public __rb_tree_base_iterator {
 #ifndef __JD_STL_NO_ARROW_OPERATOR
 	pointer operator->() const { return &(operator*()); }
 #endif
-
+	bool operator!=(const self &oth) {
+		return oth.node != node;
+	}
+	bool operator==(const self &oth) {
+		return oth.node == node;
+	}
 	// ++i
 	self operator++() { increament(); return *this; }
 	// i++
@@ -169,6 +266,7 @@ protected:
 			JD::construct(&tmp->value_field, x);
 		}
 		__JD_UNWIND(put_ndoe(p));
+		
 		return tmp;
 	}
 
@@ -192,15 +290,15 @@ protected:
 
 	// 以下函数用来获取 header的成员
 	link_type& root() { return (link_type &) header->parent; }
-	link_type& leftmost() const { return (link_type &) header->left; }
-	link_type& rightmost() const { return (link_type &) header->right; }
+	link_type& leftmost() { return (link_type &) header->left; }
+	link_type& rightmost() { return (link_type &) header->right; }
 
 	// 以下用来访问指定节点的成员
 	static link_type& left(link_type x) { return (link_type &)x->left; }
 	static link_type& right(link_type x) { return (link_type &)x->right; }
 	static link_type& parent(link_type x) { return (link_type &)x->parent; }
 	static reference value(link_type x) { return x->value_field; }
-	static const Key& key(link_type x) { return KeyOfValue()(x); }
+	static const Key& key(link_type x) { return KeyOfValue()(x->value_field); }
 	static color_type& color(link_type x) { return (color_type&)(x->color); }
 
 	static link_type& left(base_ptr x) {
@@ -263,11 +361,96 @@ public:
 	size_type size() const { return node_count; }
 	size_type max_size() const { return size_type(-1); }
 public:
-	// 将x插入到RB-tree中 保持节点独一无二
-	std::pair<iterator, bool> insert_unique(const value_type &x);
 	// 将x插入到 rb_tree 允许节点值重复
-	iterator insert_equal(const value_type &x);
+	iterator insert_equal(const value_type &v) {
+		link_type y = header;
+		link_type x = root();
+		while(x != 0) {
+			y = x;
+			// 新值 v 的键值比x的小
+			x = key_compare(KeyOfValue()(v), key(x)) ? left(x) : right(x);
+		}
+		return __insert(x, y, v);
+	}
+	// 将x插入到RB-tree中 保持节点独一无二
+	std::pair<iterator, bool> insert_unique(const value_type &v) {
+		link_type y = header;
+		link_type x = root();
+		bool comp = true;
+		while (x != 0) {
+			y = x;
+			// 新值的键值比较小就往左子树走
+			comp = key_compare(KeyOfValue()(v), key(x));
+			x = comp ? left(x) : right(x);
+		}
+		// y指向的是父节点
+		iterator j = iterator(y);
+		if (comp) {
+			if (j == begin()) {
+				// 插入点在最左边 即中序遍历的第一个节点
+				// x为插入点 y 为父节点 v为新值；插入点是当前树第一个节点
+				return std::pair<iterator, bool>(__insert(x, y, v), true);
+			} else {
+				--j;
+			}
+		}
+		//  || key_compare(KeyOfValue()(v), key(j.node))
+		if (key_compare(key(j.node), KeyOfValue()(v))) {
+			// 新值的键值比较大
+			return std::pair<iterator, bool>(__insert(x, y, v), true);
+		}
+		// 新值重复，不插入改节点
+		return std::pair<iterator, bool>(j, false);
+	}
+	iterator find(const Key &k) {
+		link_type y = header;
+		link_type x = root();
+		while(x != 0) {
+			if (!key_compare(key(x), k)) {
+				// 当前x的键值大于 k 往x的左子树走
+				y = x, x = left(x);
+			} else {
+				x = right(x);
+			}
+		}
+		iterator j = iterator(y);
+		return j == end() || key_compare(k, key(j.node)) ? end() : j;
+	}
 };
+
+template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
+typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator 
+	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__insert(base_ptr x_, base_ptr y_, const Value& v) {
+	// 参数 x_ 插入点 y_是父节点
+	link_type x = (link_type) x_;
+	link_type y = (link_type) y_;
+	link_type z;
+
+	// key_compare function<bool(const Key &, const Key &)>
+	if (header == y || x != 0 || key_compare(KeyOfValue()(v), key(y))) {
+		z = create_node(v); // 新节点
+		left(y) = z;
+		if (y == header) {
+			root() = z; // 维护根节点
+			rightmost() = z; // 维护leftmost 让它永远指向中序下的开头
+		} else if (y == leftmost()) {
+			leftmost() = z;
+		}
+	} else {
+		z = create_node(v);
+		right(y) = z;
+		if (y == rightmost()) {
+			rightmost() = z;
+		}
+	}
+	parent(z) = y;
+	left(z) = 0;
+	right(z) = 0;
+
+	__rb_tree_reblance(z, header->parent);
+	++node_count;
+	return iterator(z);
+}
 
 JD_SPACE_END
 
