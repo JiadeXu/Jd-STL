@@ -19,9 +19,10 @@
 
 JD_SPACE_BEGIN
 
-typedef bool __rb_tree_color_type;
-const __rb_tree_color_type __rb_tree_red = false; // 红色为0
-const __rb_tree_color_type __rb_tree_black = true; // 黑色为1
+typedef int __rb_tree_color_type;
+const __rb_tree_color_type __rb_tree_red = 0; // 红色为0
+const __rb_tree_color_type __rb_tree_black = 1; // 黑色为1
+const __rb_tree_color_type __rb_tree_double_black = 2; // 双重黑为2
 
 struct __rb_tree_node_base {
 	typedef __rb_tree_color_type color_type;
@@ -311,18 +312,18 @@ protected:
 		return (link_type &)(x->parent);
 	}
 	static reference value(base_ptr x) {
-		return ((link_type)x)->value_field;
+		return (static_cast<link_type>(x))->value_field;
 	}
 	static const Key& key(base_ptr x) {
-		return KeyOfValue()(value((link_type)x));
+		return KeyOfValue()(value(static_cast<link_type>(x)));
 	}
-	static color_type& color(base_ptr x) { return (color_type&)(((link_type)x)->color); }
+	static color_type& color(base_ptr x) { return (color_type&)((static_cast<link_type>(x))->color); }
 
 	static link_type minimum(link_type x) {
-		return (link_type) __rb_tree_node_base::minimum(x);
+		return static_cast<link_type>(__rb_tree_node_base::minimum(x)) ;
 	}
 	static link_type maximum(link_type x) {
-		return (link_type) __rb_tree_node_base::maximum(x);
+		return static_cast<link_type>(__rb_tree_node_base::maximum(x));
 	}
 public:
 	typedef __rb_tree_iterator<value_type, reference, pointer> iterator;
@@ -341,7 +342,7 @@ private:
 		if (p != 0) {
 			clear(p->left);
 			clear(p->right);
-			destory_node((link_type)p);
+			destory_node(static_cast<link_type>(p));
 		}
 	}
 public:
@@ -424,8 +425,8 @@ template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator 
 	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__insert(base_ptr x_, base_ptr y_, const Value& v) {
 	// 参数 x_ 插入点 y_是父节点
-	link_type x = (link_type) x_;
-	link_type y = (link_type) y_;
+	link_type x = static_cast<link_type>(x_);
+	link_type y = static_cast<link_type>(y_);
 	link_type z;
 
 	// key_compare function<bool(const Key &, const Key &)>
