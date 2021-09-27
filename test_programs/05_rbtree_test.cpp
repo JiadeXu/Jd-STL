@@ -31,7 +31,8 @@ int main() {
 		auto rs = itree.insert_unique(xarr[i]);
 		// cout << "insert " << arr[i] << " " << rs.second << " " << *(rs.first) << endl;
 	}
-
+	// 5 6 7 8 10 11 12 13 15 
+	// 5(0) 6(1) 7(0) 8(1) 10(1) 11(0) 12(0) 13(1) 15(0) 
 	cout << itree.size() << endl;
 	auto itr = itree.begin();
 	// for (int i = 0; i < itree.size(); i++, itr++) {
