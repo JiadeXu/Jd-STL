@@ -346,7 +346,9 @@ private:
 	}
 public:
 	// 后序遍历清空
-	void clear() {}
+	void clear() {
+		clear(root());
+	}
 	rb_tree(const Compare &comp = Compare()): node_count(0), key_compare(comp) { init(); }
 	~rb_tree() {
 		clear();
