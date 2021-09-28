@@ -21,7 +21,7 @@ struct identity {
 };
 
 int main() {
-	JD::rb_tree<int, int, identity<int>, JD::JDLess<int> > itree;
+	JD::rb_tree<int, int, identity<int>, JD::JDLess<int> > itree, itree2;
 	cout << itree.size() << endl;
 	int arr[] = {10, 7, 8, 15, 5, 6, 11, 13, 12};
 	// , 7, 8, 21, 3, 11
@@ -61,6 +61,29 @@ int main() {
 	if (itr == itree.end()) {
 		cout << "not found" << endl;
 	}
+	itr = itree.find(10);
+	cout << "erase " << endl;
+	itree.erase(10);
+	itree.insert_equal(8);
+	for (auto i = itree.begin(); i != itree.end(); i++) {
+		rbtite = JD::__rb_tree_base_iterator(i);
+		cout << *i << "(" << rbtite.node->color << ") ";
+	}
+	cout << endl;
+	cout << itree.count(8) << endl;
+	itree.preorder();
 
+	itree.erase(8);
+	cout << itree.count(8) << endl;
+
+
+	cout << "after copy" << endl;
+	itree2 = itree;
+	for (auto i = itree2.begin(); i != itree2.end(); i++) {
+		rbtite = JD::__rb_tree_base_iterator(i);
+		cout << *i << "(" << rbtite.node->color << ") ";
+	}
+	cout << endl;
+	itree2.preorder();
 	return 0;
 }

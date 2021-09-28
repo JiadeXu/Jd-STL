@@ -15,6 +15,7 @@
 #include "jd_iterator.h"
 #include <cstddef>
 #include <iostream>
+#include <type_traits>
 #include <utility>
 
 JD_SPACE_BEGIN
@@ -133,6 +134,150 @@ inline void __rb_tree_reblance(__rb_tree_node_base *x, __rb_tree_node_base *&roo
 		}
 	}
 	root->color = __rb_tree_black; // 根节点永远为黑色节点
+}
+
+inline __rb_tree_node_base* _rb_tree_reblance_for_erase(
+	__rb_tree_node_base* z,
+	__rb_tree_node_base*& root,
+	__rb_tree_node_base*& leftmost,
+	__rb_tree_node_base*& rightmost
+) {
+	__rb_tree_node_base *y = z; // 要删除的节点
+	__rb_tree_node_base *x = 0;
+	__rb_tree_node_base *x_parent = 0;
+
+	if (y->left == 0) { // y有至少一个非0节点
+		x = y->right; // x 可能是空的
+	} else {
+		if (y->right == 0) {
+			x = y->left;
+		} else {
+			// 找后继节点替换
+			y = y->right;
+			while(y->left != 0) {
+				y = y->left;
+			}
+			x = y->right;
+		}
+	}
+	if (y != z) {
+		// z是y的前驱
+		z->left->parent = y;
+		y->left = z->left;
+		if (y != z->right) {
+			x_parent = y->parent;
+			if (x) x->parent = y->parent;
+			y->parent->left = x;
+			y->right = z->right;
+			z->right->parent = y;
+		} else {
+			x_parent = y;
+		}
+		if (root == z) {
+			root = y;
+		} else if (z->parent->left == z) {
+			z->parent->left = y;
+		} else {
+			z->parent->right = y;
+		}
+		y->parent = z->parent;
+		std::swap(y->color, z->color);
+		y = z;
+	} else {
+		x_parent = y->parent; // 343
+		if (x) {
+			x->parent = y->parent;
+		}
+		if (root == z) {
+			root = x;
+		} else {
+			if (z->parent->left == z) {
+				z->parent->left = x;
+			} else {
+				z->parent->right = x;
+			}
+			if (leftmost == z) {
+				if (z->right == 0) {
+					leftmost = z->parent;
+				} else {
+					leftmost = __rb_tree_node_base::minimum(x);
+				}
+			}
+			if (rightmost == z) {
+				if (z->left == 0) {
+					rightmost = z->parent;
+				} else {
+					rightmost = __rb_tree_node_base::maximum(x);
+				}
+			}
+		}
+	}
+	if (y->color != __rb_tree_red) {
+		// 去除双黑
+		while(x != root && (x == 0 || x->color == __rb_tree_black)) {
+			if (x == x_parent->left) {
+				// 当前节点是父节点的左节点
+				__rb_tree_node_base *w = x_parent->right;
+				if (w->color == __rb_tree_red) {
+					w->color = __rb_tree_black;
+					x_parent->color = __rb_tree_red;
+					__rb_tree_rotate_left(x_parent, root);
+					w = x_parent->right;
+				}
+				if ((w->left == 0 || w->left->color == __rb_tree_black) && (w->right == 0 || w->right->color == __rb_tree_black)) {
+					w->color = __rb_tree_red;
+					x = x_parent;
+					x_parent = x_parent->parent;
+				} else {
+					if (w->right == 0 || w->right->color == __rb_tree_black) {
+						if (w->left) {
+							w->left->color = __rb_tree_black;
+						}
+						w->color = __rb_tree_red;
+						__rb_tree_rotate_right(w, root);
+						w = x_parent->right;
+					}
+					w->color = x_parent->color;
+					x_parent->color = __rb_tree_black;
+					if (w->right) w->right->color = __rb_tree_black;
+					__rb_tree_rotate_left(x_parent, root);
+					break;
+				}
+			} else {
+				// 当前节点是父节点的右节点
+				__rb_tree_node_base *w = x_parent->left;
+				if (w->color == __rb_tree_red) {
+					w->color = __rb_tree_black;
+					x_parent->color = __rb_tree_red;
+					__rb_tree_rotate_right(x_parent, root);
+					w = x_parent->left;
+				}
+				if ((w->right == 0 || w->right->color == __rb_tree_black) && (w->left == 0 || w->left->color == __rb_tree_black)) {
+					w->color = __rb_tree_red;
+					x = x_parent;
+					x_parent = x_parent->parent;
+				} else {
+					if (w->left == 0 || w->left->color == __rb_tree_black) {
+						if (w->right) {
+							w->right->color = __rb_tree_black;
+						}
+						w->color = __rb_tree_red;
+						__rb_tree_rotate_left(w, root);
+						w = x_parent->left;
+					}
+					w->color = x_parent->color;
+					x_parent->color = __rb_tree_black;
+					if (w->left) w->left->color = __rb_tree_black;
+					__rb_tree_rotate_right(x_parent, root);
+					break;
+				}
+			}
+		}
+		if (x) {
+			x->color = __rb_tree_black;
+		}
+	}
+	return y;
 }
 
 template<class Value>
@@ -290,9 +435,9 @@ protected:
 	Compare key_compare; // 节点比较函数 都是用小于
 
 	// 以下函数用来获取 header的成员
-	link_type& root() { return (link_type &) header->parent; }
-	link_type& leftmost() { return (link_type &) header->left; }
-	link_type& rightmost() { return (link_type &) header->right; }
+	link_type& root() const { return (link_type &) header->parent; }
+	link_type& leftmost() const { return (link_type &) header->left; }
+	link_type& rightmost() const { return (link_type &) header->right; }
 
 	// 以下用来访问指定节点的成员
 	static link_type& left(link_type x) { return (link_type &)x->left; }
@@ -345,17 +490,73 @@ private:
 			destory_node(static_cast<link_type>(p));
 		}
 	}
+	std::pair<iterator, iterator> equal_range(const key_type &k) {
+		return std::pair<iterator, iterator>(this->lower_bound(k), this->upper_bound(k));
+	}
+	iterator lower_bound(const key_type &tartgetKey) {
+		link_type last = header; // 不小于tartgetKey的最后一个节点；比targetKey大的最小节点
+		link_type cur = root(); // 当前节点
+		while(cur != 0) {
+			if (!key_compare(key(cur), tartgetKey)) {
+				// 寻找相同的键值的开始节点
+				last = cur, cur = left(cur);
+			} else {
+				cur = right(cur);
+			}
+		}
+		return iterator(last);
+	}
+	iterator upper_bound(const key_type &tartgetKey) {
+		link_type last = header; // 不大于tartgetKey的最后一个节点；比targetKey小的最大节点
+		link_type cur = root(); // 当前节点
+		while(cur != 0) {
+			if (key_compare(tartgetKey, key(cur))) {
+				// 寻找相同的键值的开始节点
+				last = cur, cur = left(cur);
+			} else {
+				cur = right(cur);
+			}
+		}
+		return iterator(last);
+	}
 public:
+	size_type count(const key_type &tartgetKey) {
+		std::pair<iterator, iterator> p = equal_range(tartgetKey);
+		return JD::distance(p.first, p.second);
+	}
 	// 后序遍历清空
 	void clear() {
+		if (node_count == 0) return;
 		clear(root());
+		leftmost() = header;
+		rightmost() = header;
+		node_count = 0;
+		root() = 0;
 	}
 	rb_tree(const Compare &comp = Compare()): node_count(0), key_compare(comp) { init(); }
 	~rb_tree() {
 		clear();
 		put_ndoe(header);
 	}
-	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& operator=(const rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& x);
+
+	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& operator=(const rb_tree<Key, Value, KeyOfValue, Compare, Alloc>& x) {
+		if (this != &x) {
+			clear();
+			node_count = 0;
+			key_compare = x.key_compare;
+			if (x.root() == 0) {
+				root() = 0;
+				leftmost() = 0;
+				rightmost() = 0;
+			} else {
+				root() = copy(x.root(), header);
+				leftmost() = minimum(root());
+				rightmost() = maximum(root());
+				node_count = x.node_count;
+			}
+		}
+		return *this;
+	}
 public:
 	Compare key_comp() const { return key_compare; }
 	iterator begin() { return leftmost(); } // RB头节点 为最左的节点（最小）
@@ -405,6 +606,36 @@ public:
 		// 新值重复，不插入改节点
 		return std::pair<iterator, bool>(j, false);
 	}
+	void erase(iterator pos) {
+		link_type y = (link_type) _rb_tree_reblance_for_erase(
+			pos.node, header->parent, header->left, header->right);
+		destory_node(y);
+		--node_count;
+	}
+	// 删除指定键值
+	size_type erase(const Key &k) {
+		std::pair<iterator, iterator> p = this->equal_range(k);
+		size_type n = JD::distance(p.first, p.second);
+		erase(p.first, p.second);
+		return n;
+	}
+	// 迭代器范围内
+	void erase(iterator first, iterator last) {
+		if (first == begin() && last == end()) {
+			clear();
+		} else {
+			while (first != last) {
+				erase(first++);
+			}
+		}
+	}
+	// 指针范围内
+	void erase(const Key *first, const Key *last) {
+		while(first != last) {
+			// 调用的是键值版本
+			erase(*first++);
+		}
+	}
 	iterator find(const Key &k) {
 		link_type y = header;
 		link_type x = root();
@@ -418,6 +649,25 @@ public:
 		}
 		iterator j = iterator(y);
 		return j == end() || key_compare(k, key(j.node)) ? end() : j;
+	}
+	// 测试函数
+	// 前序遍历并输出左右子节点
+	void __preorder(const base_ptr root) {
+		if (root) {
+			std::cout << root->color << " | " << key(root) << ", ";
+			if (left(root) != 0) {
+				std::cout << key(left(root)) << ", ";
+			}
+			if (right(root) != 0) {
+				std::cout << key(right(root)) << ", ";
+			}
+			std::cout << std::endl;
+			__preorder(left(root));
+			__preorder(right(root));
+		}
+	}
+	void preorder() {
+		__preorder(root());
 	}
 };
 
@@ -453,6 +703,44 @@ typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator
 	__rb_tree_reblance(z, header->parent);
 	++node_count;
 	return iterator(z);
+}
+
+template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
+void rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__erase(link_type x_) {
+	// link_type x = static_cast<link_type>(x_);
+	while(x_ != 0) {
+		__erase(right(x_));
+		link_type _y = left(x_);
+		destory_node(x_);
+		x_ = _y;
+	}
+}
+template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
+typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::link_type 
+	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::copy(link_type x, link_type p) {
+	
+	link_type top = clone_node(x);
+	top->parent = p;
+
+	__JD_TRY {
+		if (x->right) {
+			top->right = this->copy(right(x), top);
+		}
+		p = top;
+		x = left(x);
+
+		while(x != 0) {
+			link_type y = this->clone_node(x);
+			p->left = y;
+			y->parent = p;
+			if (x->right) {
+				y->right = this->copy(right(x), y);
+			}
+			p = y;
+			x = left(x);
+		}
+	} __JD_UNWIND(__erase(top));
+	return top;
 }
 
 JD_SPACE_END
