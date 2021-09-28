@@ -1,367 +1,470 @@
-#ifndef _RB_TREE_H
-#define _RB_TREE_H
+/*************************************************************************
+	> File Name: jd_rb_tree_r.h
+	> Author: 
+	> Mail: 
+	> Created Time: Tue Sep 28 13:46:32 2021
+ ************************************************************************/
 
+#ifndef _jd_rb_tree_R_H
+#define _jd_rb_tree_R_H
+
+#include "jd_alloc.h"
+#include "jd_construct.h"
+#include "default_alloc_template.h"
+#include "jd_iterator.h"
 #include "jd_macro.h"
-
-#include <cstdlib>
-#include <iostream>
+#include <cstddef>
+#include <utility>
 
 JD_SPACE_BEGIN
 
-enum COLOR {
-    RED = 0,
-    BLACK = 1,
-    DOUBLE_BLACK = 2
+enum {
+	RED = 0,
+	BLACK = 1,
+	DOUBLE_BALCK = 2
 };
 
-// #define RED 0
-// #define BLACK 1
-// #define DOUBLE_BLACK 2
+typedef int NODE_COLOR;
 
-template<class V>
-struct RbNode {
-    typedef RbNode node_t;
+template<class Value>
+struct jd_rb_tree_node {
+	// typedef NODE_COLOR color_type;
+	typedef jd_rb_tree_node* base_ptr;
 
-    V data;
-    COLOR color;
-    node_t *lchild, *rchild, *father;
-    RbNode(
-        V data = V(),
-        node_t *father = nullptr,
-        node_t *lchild = nullptr,
-        node_t *rchild = nullptr,
-        COLOR color = RED
-    ): data(data), father(father), lchild(lchild), rchild(rchild), color(color) {}
+	base_ptr left;
+	base_ptr right;
+	base_ptr parent;
+	NODE_COLOR color;
 
-    static node_t __NIL;
+	// typedef jd_rb_tree_base_node::base_ptr base_ptr;
+	typedef jd_rb_tree_node<Value>* link_type;
+	Value value_field;
 
-    static node_t* Nil() {
-        if (__NIL.lchild != &__NIL) {
-            __NIL.color = BLACK;
-            __NIL.father = __NIL.lchild = __NIL.rchild = &__NIL;
-        }
-        return &__NIL;
-    }
+	jd_rb_tree_node(Value v): value_field(v) {}
+	jd_rb_tree_node() {}
+
+	static base_ptr minimum(base_ptr x) {
+		while(x->left != Nil()) x = x->left;
+		return x;
+	}
+	
+	static base_ptr maximum(base_ptr x) {
+		while(x->right != Nil()) x = x->right;
+		return x;
+	}
+
+	static jd_rb_tree_node<Value> __NIL;
+	static link_type Nil() {
+		if (__NIL.left != &__NIL) {
+			__NIL.color = BLACK;
+			__NIL.left = __NIL.right = __NIL.parent = &__NIL;
+		}
+		return &__NIL;
+	}
 };
 
-template<class V>
-RbNode<V> RbNode<V>::__NIL;
+template<class Value>
+jd_rb_tree_node<Value> jd_rb_tree_node<Value>::__NIL;
 
-template<class V>
-class rb_node_iterator {
+template<class Value, class Ref, class Ptr>
+struct jd_rb_tree_node_iterator {
+
+	typedef JD::bidirectional_iterator_tag iterator_category;
+	typedef Value value_type;
+	typedef Ref reference;
+	typedef Ptr pointer;
+	typedef jd_rb_tree_node_iterator<value_type, value_type&, value_type*> iterator;
+	typedef jd_rb_tree_node_iterator<Value, Ref, Ptr> self;
+	typedef jd_rb_tree_node<Value> base;
+	typedef base* link_type;
+
+	static link_type NIL() {
+		return base::Nil();
+	}
+
+	link_type node;
+
+	jd_rb_tree_node_iterator() {}
+
+	jd_rb_tree_node_iterator(link_type x):node(x) {}
+	jd_rb_tree_node_iterator(const iterator &x) { node = x.node; }
+
+	void increament() {
+		// 找后继
+		if (node->right != NIL()) {
+			node = node->right;
+			while(node->left != NIL()) {
+				node = node->left;
+			}
+		} else {
+			while(node->parent != NIL() && node->parent->left != node) {
+				node = node->parent;
+			}
+			node = node->parent;
+		}
+	}
+
+	void decreament() {
+		// 找前驱
+		if (node->left != NIL()) {
+			node = node->left;
+			while (node->right != NIL()) {
+				node = node->right;
+			}
+		} else {
+			while(node->parent != NIL() && node->parent->right != node) {
+				node = node->parent;
+			}
+			node = node->parent;
+		}
+	}
+
+	reference operator*() {
+		return node->value_field;
+	}
+	pointer operator->() {
+		return &(operator*());
+	}
+	bool operator!=(const self &o) {
+		return o.node != node;
+	}
+	bool operator==(const self &o) {
+		return o.node == node;
+	}
+	// i++
+	self operator++() {
+		self tmp = *this;
+		increament();
+		return tmp;
+	}
+	// ++i
+	self operator++(int) {
+		increament();
+		return *this;
+	}
+	// i--
+	self operator--() {
+		self tmp = *this;
+		decreament();
+		return tmp;
+	}
+	// --i
+	self operator--(int) {
+		decreament();
+		return *this;
+	}
+};
+
+template<class Key, class Value, class KeyOfValue, class Compare, class Alloc = JD::alloc>
+class jd_rb_tree {
+protected:
+	typedef NODE_COLOR color_type;
+	typedef jd_rb_tree_node<Value> base;
+	typedef JD::simple_alloc<base, Alloc> node_allocator;
 public:
-    typedef RbNode<V> node_t;
-    typedef rb_node_iterator iterator;
-private:
-    node_t *ptr;
+	typedef base* link_type;
+	typedef Value value_type;
+	typedef value_type* pointer;
+	typedef value_type& reference;
+	typedef const value_type& const_reference;
+	typedef Key key_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef jd_rb_tree_node_iterator<value_type, reference, pointer> iterator;
+protected:
+	link_type get_node() { return node_allocator::allocate(); }
+	void put_ndoe(link_type p) { node_allocator::deallocate(p); }
+
+	link_type create_node(const value_type &x) {
+		link_type tmp = get_node();
+		JD::construct(tmp, x);
+		return tmp;
+	}
+
+	void destory_node(link_type node) {
+		JD::destory(node);
+		put_ndoe(node);
+	}
+protected:
+	size_type node_count;
+	base header;
+	Compare key_compare;
+	
+	link_type& root() { return (link_type &) header.left; }
+	static link_type& left(link_type x) { return (link_type &) x->left; }
+	static link_type& right(link_type x) { return (link_type &) x->right; }
+	static link_type& parent(link_type x) { return (link_type &) x->parent; }
+	static reference value(link_type x) { return x->value_field; }
+	static const Key& key(link_type x) { return KeyOfValue()(x->value_field); }
+	static color_type& color(link_type x) { return (color_type &)x->color; }
+
+	static link_type minimum(link_type x) { return base::minimum(x); }
+	static link_type maximum(link_type x) { return base::maximum(x); }
+
+    void clear(link_type root) {
+        if(root == NIL()) return ;
+        clear(root->left);
+        clear(root->right);
+        destory_node(root);
+    }
+
+	static bool has_red_child(link_type root) {
+		return left(root)->color == RED || right(root)->color == RED;
+	}
+
+	static link_type left_rotate(link_type root) {
+		link_type tmp = root->right;
+		tmp->parent = root->parent;
+		root->right = tmp->left;
+		tmp->left->parent = root;
+		tmp->left = root;
+		root->parent = tmp;
+		return tmp;
+	}
+
+	static link_type right_rotate(link_type root) {
+		link_type tmp = root->left;
+		tmp->parent = root->parent;
+		root->left = tmp->right;
+		tmp->right->parent = root;
+		tmp->right = root;
+		root->parent = tmp;
+		return tmp;
+	}
+
+	static link_type predecessor(link_type root) {
+		link_type tmp = root->left;
+		while(tmp->right != NIL()) {
+			tmp = tmp->right;
+		}
+		return tmp;
+	}
+
+	// 插入时的调整，去除双红的情况；以祖父节点的角度进行调整
+	link_type insert_maintain(link_type root);
+
+	link_type __insert(link_type root, link_type parent, const value_type &data) {
+		if (root == NIL()) {
+			node_count++;
+			link_type newNode = create_node(data);
+			newNode->parent = parent;
+			newNode->left = newNode->right = NIL();
+			newNode->color = RED;
+			// 新节点是红节点
+			return newNode;
+		}
+		if (key_compare(key(root), KeyOfValue()(data))) {
+			// 当前根节点的数据比新节点的要小
+			right(root) = __insert(root->right, root, data);
+		} else {
+			// 小于等于当前根节点的数据都将在根节点的左子树
+			left(root) = __insert(root->left, root, data);
+		}
+		return insert_maintain(root);
+	}
+
+	void insert(const value_type &data) {
+		header.left = __insert(header.left, &header, data);
+		header.left->color = BLACK;
+	}
+
+	// 站在父节点的角度调整
+	link_type erase_maintain(link_type root);
+
+	link_type __erase(link_type root, const key_type &tartgetKey) {
+		if (root == NIL()) return root;
+		if (key_compare(key(root), tartgetKey)) {
+			// 要删除的数据键 比 当前节点大
+			right(root) = __erase(right(root), tartgetKey);
+		} else if (key_compare(tartgetKey, key(root))) {
+			// 要删除的数据键 比 当前节点小
+			left(root) = __erase(left(root), tartgetKey);
+		} else {
+			if (left(root) == NIL() || right(root) == NIL()) {
+				link_type tmp = left(root) == NIL() ? right(root) : left(root);
+				tmp->color += root->color; // 会产生双黑节点
+				destory_node(root);
+				return tmp;
+			} else {
+				link_type tmp = predecessor(root);
+				root->value_field = tmp->value_field;
+				left(root) = __erase(left(root), KeyOfValue()(tmp->value_field));
+			}
+		}
+		return erase_maintain(root);
+	}
+
+protected:
+	static link_type NIL() {
+		return base::Nil();
+	}
 public:
-    rb_node_iterator(node_t *ptr): ptr(ptr) {}
-    
-    bool operator!=(const iterator &other) {
-        return ptr != other.ptr;
-    }
+	jd_rb_tree() {
+		header.left = NIL();
+		header.left->parent = &header;
+		header.parent = NIL();
+		node_count = 0;
+		key_compare = Compare();
+	}
 
-    // ++i
-    iterator& operator++() {
-        ptr = next(ptr);
-        return *this;
-    }
-    // i++
-    iterator operator++(int) {
-        iterator ret(ptr);
-        ptr = next(ptr);
-        return ret;
-    }
+	void insert_equal(const value_type &v) {
+		insert(v);
+	}
 
-    V& operator*() {
-        return ptr->data;
-    }
-private:
-    static node_t* next(node_t *p) {
-        if (p->rchild != node_t::Nil()) {
-            p = p->rchild;
-            while(p->lchild != node_t::Nil()) {
-                p = p->lchild;
-            }
-            return p;
-        }
-        while(p->father != node_t::Nil() && p->father->lchild != p) {
-            p = p->father;
-        }
-        return p->father;
-    }
-    
+	std::pair<iterator, bool> insert_unique(const value_type &v) {
+		auto p = find(KeyOfValue()(v));
+		if (p == end()) {
+			insert(v);
+			p = find(KeyOfValue()(v));
+			return std::pair<iterator, bool>(p, true);
+		}
+		return std::pair<iterator, bool>(p, false);
+	}
+
+	void erase(const key_type &key) {
+		__erase(root(), key);
+		node_count--;
+		header.left->color = BLACK;
+	}
+
+	size_type size() {
+		return node_count;
+	}
+
+	iterator begin() {
+		return iterator(minimum(root()));
+	}
+	iterator end() {
+		return iterator(&header);
+	}
+	~jd_rb_tree() {
+		clear(root());
+	}
+	iterator find(const key_type &tartgetKey) {
+		link_type last = NIL();
+		link_type cur = root();
+		while (cur != NIL()) {
+			if (key_compare(key(cur), tartgetKey)) {
+				cur = right(cur);
+			} else {
+				last = cur, cur = left(cur);
+			}
+		}
+		iterator j = iterator(last);
+		// 最后如果 last 指向的是 targetKey key_compare会返回 false
+		return j == NIL() || key_compare(tartgetKey, key(j.node)) ? end() : j;
+	}
+
+	// 前序遍历并输出左右子节点
+	void __preorder(const link_type root) {
+		if (root != NIL()) {
+			std::cout << root->color << " | " << key(root) << ", ";
+			std::cout << key(left(root)) << ", ";
+			std::cout << key(right(root)) << ", ";
+			std::cout << std::endl;
+			__preorder(left(root));
+			__preorder(right(root));
+		}
+	}
+	void preorder() {
+		__preorder(root());
+	}
 };
 
-template<class K, class V, class SKEY, class COMPK>
-class rb_tree {
-public:
-    typedef RbNode<V> node_t;
-    typedef rb_node_iterator<V> iterator;
-public:
-    rb_tree() {
-        root.lchild = Nil();
-        root.lchild->father = &root;
-        root.father = Nil();
-    }
-    node_t* getRoot() {
-        return root.lchild;
-    }
+template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
+typename jd_rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::link_type 
+	jd_rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::insert_maintain(link_type root) 
+{
+	if (!has_red_child(root)) {
+		return root;
+	}
+	if (left(root)->color == RED && right(root)->color == RED) {
+		if (!has_red_child(left(root)) && !has_red_child(right(root))) {
+			return root;
+		}
+		// 红色节点上浮
+		root->color = RED;
+		left(root)->color = right(root)->color = BLACK;
+		return root;
+	}
+	// 叔父节点为黑色节点
+	if (left(root)->color == RED && !has_red_child(left(root))) return root;
+	if (right(root)->color == RED && !has_red_child(right(root))) return root;
 
-    void insert(V data) {
-        root.lchild = __insert(root.lchild, &root, data);
-        root.lchild->color = BLACK;
-    }
+	if (left(root)->color == RED) {
+		if (right(left(root))->color == RED) {
+			// LR型
+			left(root) = left_rotate(left(root));
+		}
+		root = right_rotate(root);
+	} else {
+		if (left(right(root))->color == RED) {
+			// RL型
+			right(root) = right_rotate(right(root));
+		}
+		root = left_rotate(root);
+	}
+	root->color = RED;
+	left(root)->color = right(root)->color = BLACK;
+	return root;
+}
 
-    void remove(V data) {
-        root.lchild = __remove(root.lchild, data);
-        root.lchild->color = BLACK;
-    }
-
-    iterator begin() {
-        node_t *p = root.lchild;
-        while(p->lchild != Nil()) {
-            p = p->lchild;
-        }
-        return iterator(p);
-    }
-
-    iterator end() {
-        return iterator(&root);
-    }
-
-    void output() {
-        __output(root.lchild);
-    }
-    ~rb_tree() {
-        clear(root.lchild);
-    }
-
-    node_t *find(const K &key) {
-        node_t *p = root.lchild;
-        while (p != Nil()) {
-            if (key < getKey(p->data)) {
-                p = p->lchild;
-            } else if (getKey(p->data) < key) {
-                p = p->rchild;
-            } else {
-                break;
-            }
-        }
-        return p;
-    }
-private:
-    node_t root;
-    void clear(node_t *root) {
-        if(root == Nil()) return ;
-        clear(root->lchild);
-        clear(root->rchild);
-        delete root;
-        return ;
-    }
-private:
-    static node_t* Nil() {
-        return node_t::Nil();
-    }
-
-    static node_t* get_new_node(V data, node_t *father) {
-        return new node_t(data, father, Nil(), Nil(), RED);
-    }
-
-    static node_t* left_rotate(node_t *root) {
-        node_t *temp = root->rchild;
-        temp->father = root->father;
-        root->rchild = temp->lchild;
-        temp->lchild->father = root;
-        temp->lchild = root;
-        root->father = temp;
-        return temp;
-    }
-    static node_t* right_rotate(node_t *root) {
-        node_t *temp = root->lchild;
-        temp->father = root->father;
-        root->lchild = temp->rchild;
-        temp->rchild->father = root;
-        temp->rchild = root;
-        root->father = temp;
-        return temp;
-    }
-
-    static node_t* predecessor(node_t *root) {
-        node_t *temp = root->lchild;
-        while(temp->rchild != Nil()) {
-            temp = temp->rchild;
-        }
-        return temp;
-    }
-
-    static bool has_red_child(node_t *root) {
-        return root->lchild->color == RED || root->rchild->color == RED;
-    }
-
-    // 在祖父节点的角度消除双红
-    static node_t* insert_maintain(node_t *root) {
-        if (!has_red_child(root)) return root;
-        // 叔叔节点为红色节点 即 祖父节点的两个子节点都是红色节点
-        if (root->lchild->color == RED && root->rchild->color == RED) {
-            if (!has_red_child(root->lchild) && !has_red_child(root->rchild)) {
-                return root;
-            }
-            // 红色节点上浮
-            root->color = RED;
-            root->lchild->color = root->rchild->color = BLACK;
-            return root;
-        }
-        // 判断当叔叔节点不为红色时是否有双红的情况
-        if (root->lchild->color == RED && !has_red_child(root->lchild)) return root;
-        if (root->rchild->color == RED && !has_red_child(root->rchild)) return root;
-
-        if (root->lchild->color == RED) {
-            if (root->lchild->rchild->color == RED) {
-                // LR型
-                root->lchild = left_rotate(root->lchild);
-            }
-            root = right_rotate(root);
-        } else {
-            if (root->rchild->lchild->color == RED) {
-                // RL型
-                root->rchild = right_rotate(root->rchild);
-            }
-            root = left_rotate(root);
-        }
-        root->color = RED;
-        root->lchild->color = root->rchild->color = BLACK;
-        return root;
-    }
-
-    static node_t* __insert(node_t *root, node_t *father, V data) {
-        if (root == Nil()) return get_new_node(data, father);
-        // if (root->data == key) return root;
-        if (comp(getKey(data), getKey(root->data))) {
-            root->lchild = __insert(root->lchild, root, data);
-        } else if (comp(getKey(root->data), getKey(data))) {
-            root->rchild = __insert(root->rchild, root, data);
-        } else {
-            return root;
-        }
-        return insert_maintain(root);
-    }
-
-    // 在父节点角度删除双重黑节点
-    static node_t* remove_maintain(node_t *root) {
-        if (root->lchild->color != DOUBLE_BLACK && root->rchild->color != DOUBLE_BLACK) {
-            return root;
-        }
-        // 兄弟节点是红色的 通过节点调整为兄弟节点是红色的情况
-        if (has_red_child(root)) {
-            int flag; // 标识双重黑节点下沉的方向
-            root->color = RED;
-            if (root->lchild->color == DOUBLE_BLACK) {
-                flag = 1;
-                root = left_rotate(root);
-            } else {
-                flag = 0;
-                root = right_rotate(root);
-            }
-            root->color = BLACK;
-            if (flag == 1) root->lchild = remove_maintain(root->lchild);
-            else root->rchild = remove_maintain(root->rchild);
-            return root;
-        }
-        // 兄弟节点的子节点没有红色的节点的
-        if ((root->lchild->color == DOUBLE_BLACK && !has_red_child(root->rchild)) || (root->rchild->color == DOUBLE_BLACK && !has_red_child(root->lchild))) {
-            // 双黑上浮
-            root->color += 1;
-            root->lchild->color -= 1;
-            root->rchild->color -= 1;
-            return root;
-        }
-        // 
-        if (root->lchild->color == DOUBLE_BLACK) {
-            root->lchild->color -= 1;
-            if (root->rchild->rchild->color != RED) {
-                root->rchild->color = RED;
-                root->rchild = right_rotate(root->rchild);
-                root->rchild->color = BLACK;
-            }
-            root = left_rotate(root);
-            root->color = root->lchild->color;
-        } else {
-            root->rchild->color -= 1;
-            if (root->lchild->lchild->color != RED) {
-                root->lchild->color = RED;
-                root->lchild = left_rotate(root->lchild);
-                root->lchild->color = BLACK;
-            }
-            root = right_rotate(root);
-            root->color = root->rchild->color;
-        }
-        root->lchild->color = root->rchild->color = BLACK;
-        return root;
-    }
-
-    static node_t* __remove(node_t *root, V data) {
-        if (root == Nil()) return root;
-        if (comp(getKey(data), getKey(root->data))) {
-            root->lchild = __remove(root->lchild, data);
-        } else if (comp(getKey(root->data), getKey(data))) {
-            root->rchild = __remove(root->rchild, data);
-        } else {
-            if (root->lchild == Nil() || root->rchild == Nil()) {
-                node_t *temp = root->lchild != Nil() ? root->lchild : root->rchild;
-                temp->color += root->color; // 这里会产生双重黑
-                delete root;
-                return temp;
-            } else {
-                node_t *temp = predecessor(root);
-                root->data = temp->data;
-                root->lchild = __remove(root->lchild, root->data);
-            }
-        }
-        return remove_maintain(root);
-    }
-
-    static void __output(node_t *root) {
-        if(root == Nil()) return ;
-        std::cout << root->color << " | " << getKey(root->data) << ", " << getKey(root->lchild->data) << ", " << getKey(root->rchild->data) << std::endl;
-        __output(root->lchild);
-        __output(root->rchild);
-        return ;
-    }
-
-    static COMPK comp;
-    static SKEY getKey;
-};
-
-template<class K, class V, class SKEY, class COMPK>
-COMPK rb_tree<K, V, SKEY, COMPK>::comp;
-template<class K, class V, class SKEY, class COMPK>
-SKEY rb_tree<K, V, SKEY, COMPK>::getKey;
-
-template<class V>
-struct less {
-    bool operator()(const V &a, const V &b) const {
-        return a < b;
-    }
-};
-
-template<class V>
-struct SelectFirst {
-    auto operator()(const V &a) -> decltype(a.first) {
-        return a.first;
-    }
-};
-
-template<class V>
-struct SelectRow {
-    auto operator()(const V a) {
-        return a;
-    }
-};
-
-// #undef DOUBLE_BLACK
-// #undef BLACK
-// #undef RED
+template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
+typename jd_rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::link_type 
+	jd_rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::erase_maintain(link_type root) 
+{
+	if (right(root)->color != DOUBLE_BALCK && left(root)->color != DOUBLE_BALCK) return root;
+	// 兄弟节点中有红色节点
+	if (has_red_child(root)) {
+		int flag; // 标记双重黑节点下沉的方向
+		root->color = RED;
+		if (left(root)->color == DOUBLE_BALCK) {
+			root = left_rotate(root);
+			flag = 1;
+		} else {
+			root = right_rotate(root);
+			flag = 0;
+		}
+		root->color = BLACK;
+		if (flag == 1) left(root) = erase_maintain(left(root));
+		else right(root) = erase_maintain(right(root));
+		return root;
+	}
+	// 兄弟节点的子节点没有红色节点的 双黑上浮
+	if ((left(root)->color == DOUBLE_BALCK && !has_red_child(right(root))) || (right(root)->color == DOUBLE_BALCK && !has_red_child(left(root)))) {
+		root->color += 1;
+		left(root)->color -= 1;
+		right(root)->color -= 1;
+		return root;
+	}
+	// 兄弟节点的子节点有红色节点
+	if (left(root)->color == DOUBLE_BALCK) {
+		left(root)->color -= 1;
+		if (right(right(root))->color != RED) {
+			// RL型
+			right(root)->color = RED;
+			right(root) = right_rotate(right(root));
+			right(root)->color = BLACK;
+		}
+		root = left_rotate(root);
+		// 新根改为原根的颜色
+		root->color = left(root)->color;
+	} else {
+		right(root)->color -= 1;
+		if (left(left(root))->color != RED) {
+			// LR型
+			left(root)->color = RED;
+			left(root) = left_rotate(left(root));
+			left(root)->color = BLACK;
+		}
+		root = right_rotate(root);
+		// 新根改为原根的颜色
+		root->color = right(root)->color;
+	}
+	left(root)->color = right(root)->color = BLACK;
+	return root;
+}
 
 JD_SPACE_END
+
 #endif
