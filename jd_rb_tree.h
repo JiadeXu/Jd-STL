@@ -146,10 +146,11 @@ inline __rb_tree_node_base* _rb_tree_reblance_for_erase(
 	__rb_tree_node_base *x = 0;
 	__rb_tree_node_base *x_parent = 0;
 
-	if (y->left == 0) { // y有至少一个非0节点
+	if (y->left == 0) { // 要删除的节点 y 的子节点有一个为空的话直接用另一个非空的节点进行替换
 		x = y->right; // x 可能是空的
 	} else {
 		if (y->right == 0) {
+			// 到这里表示y的两个子节点都是空节点
 			x = y->left;
 		} else {
 			// 找后继节点替换
