@@ -14,7 +14,6 @@
 #include "jd_iterator.h"
 #include "jd_macro.h"
 #include <cstddef>
-#include <utility>
 
 JD_SPACE_BEGIN
 
@@ -132,24 +131,24 @@ struct jd_rb_tree_node_iterator {
 		return o.node == node;
 	}
 	// i++
-	self operator++() {
+	self operator++(int) {
 		self tmp = *this;
 		increament();
 		return tmp;
 	}
 	// ++i
-	self operator++(int) {
+	self operator++() {
 		increament();
 		return *this;
 	}
 	// i--
-	self operator--() {
+	self operator--(int) {
 		self tmp = *this;
 		decreament();
 		return tmp;
 	}
 	// --i
-	self operator--(int) {
+	self operator--() {
 		decreament();
 		return *this;
 	}
@@ -243,6 +242,9 @@ protected:
 	// 插入时的调整，去除双红的情况；以祖父节点的角度进行调整
 	link_type insert_maintain(link_type root);
 
+	// 站在父节点的角度调整 删除某个节点后的树
+	link_type erase_maintain(link_type root);
+
 	link_type __insert(link_type root, link_type parent, const value_type &data) {
 		if (root == NIL()) {
 			node_count++;
@@ -268,9 +270,6 @@ protected:
 		header.left->color = BLACK;
 	}
 
-	// 站在父节点的角度调整
-	link_type erase_maintain(link_type root);
-
 	link_type __erase(link_type root, const key_type &tartgetKey) {
 		if (root == NIL()) return root;
 		if (key_compare(key(root), tartgetKey)) {
@@ -287,6 +286,7 @@ protected:
 				return tmp;
 			} else {
 				link_type tmp = predecessor(root);
+				// 需要operator= 的重载
 				root->value_field = tmp->value_field;
 				left(root) = __erase(left(root), KeyOfValue()(tmp->value_field));
 			}

@@ -41,7 +41,7 @@ int main() {
 
 	cout << "erase start" << endl;
 	itree.erase(19);
-	cout << "after erase size of tree " << itree.size() << endl;
+	cout << "after erase " << 19 << " size of tree " << itree.size() << endl;
 	for (auto i : itree) {
 		cout << i << " ";
 	}
