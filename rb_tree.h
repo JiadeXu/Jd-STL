@@ -14,6 +14,8 @@
 #include "jd_iterator.h"
 #include "jd_macro.h"
 #include <cstddef>
+#include <iostream>
+#include <utility>
 
 JD_SPACE_BEGIN
 
@@ -68,6 +70,7 @@ jd_rb_tree_node<Value> jd_rb_tree_node<Value>::__NIL;
 template<class Value, class Ref, class Ptr>
 struct jd_rb_tree_node_iterator {
 
+	typedef ptrdiff_t difference_type;
 	typedef JD::bidirectional_iterator_tag iterator_category;
 	typedef Value value_type;
 	typedef Ref reference;
@@ -184,12 +187,54 @@ protected:
 		JD::destory(node);
 		put_ndoe(node);
 	}
+
+	link_type clone_node(link_type x) {
+		link_type tmp = create_node(x->value_field);
+		tmp->color = x->color;
+		tmp->left = NIL();
+		tmp->right = NIL();
+		return tmp;
+	}
+
+	link_type copy(link_type x, link_type p) {
+		link_type top = clone_node(x);
+		
+		top->parent = p;
+
+		__JD_TRY {
+			if (x->right != NIL()) {
+				top->right = this->copy(right(x), top);
+			}
+			p = top;
+			x = left(x);
+
+			while(x != NIL()) {
+				link_type y = this->clone_node(x);
+				p->left = y;
+				y->parent = p;
+				if (x->right != NIL()) {
+					y->right = this->copy(right(x), y);
+				}
+				p = y;
+				x = left(x);
+			}
+		} __JD_UNWIND(__erase(top));
+		return top;
+	}
+
 protected:
 	size_type node_count;
 	base header;
 	Compare key_compare;
+
+	void init() {
+		header.left = NIL();
+		header.left->parent = &header;
+		header.parent = NIL();
+		node_count = 0;
+	}
 	
-	link_type& root() { return (link_type &) header.left; }
+	link_type& root() const { return (link_type &) header.left; }
 	static link_type& left(link_type x) { return (link_type &) x->left; }
 	static link_type& right(link_type x) { return (link_type &) x->right; }
 	static link_type& parent(link_type x) { return (link_type &) x->parent; }
@@ -294,19 +339,56 @@ protected:
 		return erase_maintain(root);
 	}
 
+	void erase(const iterator &itr) {
+		__erase(root(), key(itr.node));
+		node_count--;
+		header.left->color = BLACK;
+	}
+
+	std::pair<iterator, iterator> equal_range(const key_type &k) {
+		return std::pair<iterator, iterator>(this->lower_bound(k), this->upper_bound(k));
+	}
+	iterator lower_bound(const key_type &tartgetKey) {
+		link_type last = NIL(); // 不小于tartgetKey的最后一个节点；比targetKey大的最小节点
+		link_type cur = root(); // 当前节点
+		while(cur != NIL()) {
+			// 找大于等于 targetKey
+			if (!key_compare(key(cur), tartgetKey)) {
+				// 寻找相同的键值的开始节点
+				last = cur, cur = left(cur);
+			} else {
+				cur = right(cur);
+			}
+		}
+		return iterator(last);
+	}
+	iterator upper_bound(const key_type &tartgetKey) {
+		link_type last = NIL(); // 不大于tartgetKey的最后一个节点；比targetKey小的最大节点
+		link_type cur = root(); // 当前节点
+		while(cur != NIL()) {
+			// 找小于targetkey的
+			if (key_compare(tartgetKey, key(cur))) {
+				// 寻找相同的键值的开始节点
+				last = cur, cur = left(cur);
+			} else {
+				cur = right(cur);
+			}
+		}
+		return iterator(last);
+	}
 protected:
 	static link_type NIL() {
 		return base::Nil();
 	}
 public:
 	jd_rb_tree() {
-		header.left = NIL();
-		header.left->parent = &header;
-		header.parent = NIL();
-		node_count = 0;
+		init();
 		key_compare = Compare();
 	}
-
+	size_type count(const key_type &tartgetKey) {
+		std::pair<iterator, iterator> p = equal_range(tartgetKey);
+		return JD::distance(p.first, p.second);
+	}
 	void insert_equal(const value_type &v) {
 		insert(v);
 	}
@@ -321,25 +403,39 @@ public:
 		return std::pair<iterator, bool>(p, false);
 	}
 
-	void erase(const key_type &key) {
-		__erase(root(), key);
-		node_count--;
-		header.left->color = BLACK;
+	size_type erase(const key_type &key) {
+		std::pair<iterator, iterator> p = equal_range(key);
+		size_type n = JD::distance(p.first, p.second);
+		erase(p.first, p.second);
+		return n;
 	}
 
-	size_type size() {
-		return node_count;
+	void erase(iterator first, iterator last) {
+		if (first == begin() && last == end()) {
+			clear();
+		} else {
+			while (first != last) {
+				erase(first++);
+			}
+		}
 	}
 
-	iterator begin() {
-		return iterator(minimum(root()));
-	}
-	iterator end() {
-		return iterator(&header);
-	}
-	~jd_rb_tree() {
+	bool empty() { return node_count == 0; }
+
+	size_type size() { return node_count; }
+
+	iterator begin() { return iterator(minimum(root())); }
+	iterator end() { return iterator(&header); }
+	 
+	void clear() {
+		if (node_count == 0) return;
 		clear(root());
 	}
+
+	~jd_rb_tree() {
+		clear();
+	}
+
 	iterator find(const key_type &tartgetKey) {
 		link_type last = NIL();
 		link_type cur = root();
@@ -366,8 +462,23 @@ public:
 			__preorder(right(root));
 		}
 	}
+
 	void preorder() {
 		__preorder(root());
+	}
+	jd_rb_tree& operator=(const jd_rb_tree& x) {
+		if (this != &x) {
+			clear();
+			node_count = 0;
+			key_compare = x.key_compare;
+			if (x.root() == NIL()) {
+				init();
+			} else {
+				root() = copy(x.root(), &header);
+				node_count = x.node_count;
+			}
+		}
+		return *this;
 	}
 };
 
