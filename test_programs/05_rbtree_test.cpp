@@ -10,7 +10,7 @@
 #include <vector>
 #include "../jd_algorithm.h"
 #include <map>
-#include "../jd_rb_tree.h"
+#include "../jd_rb_tree_sgi.h"
 using namespace std;
 
 template<class T>

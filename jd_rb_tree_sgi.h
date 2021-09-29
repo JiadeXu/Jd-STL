@@ -8,6 +8,7 @@
 #ifndef _JD_RB_TREE_H
 #define _JD_RB_TREE_H
 
+// 参考SGI实现的红黑树
 #include "default_alloc_template.h"
 #include "jd_alloc.h"
 #include "jd_construct.h"
