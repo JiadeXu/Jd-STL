@@ -76,8 +76,10 @@ struct jd_rb_tree_node_iterator {
 	typedef Ref reference;
 	typedef Ptr pointer;
 	typedef jd_rb_tree_node_iterator<value_type, value_type&, value_type*> iterator;
+	typedef const jd_rb_tree_node_iterator<value_type, value_type&, value_type*> const_iterator;
 	typedef jd_rb_tree_node_iterator<Value, Ref, Ptr> self;
 	typedef jd_rb_tree_node<Value> base;
+	typedef const value_type* const_pointer;
 	typedef base* link_type;
 
 	static link_type NIL() {
@@ -127,8 +129,8 @@ struct jd_rb_tree_node_iterator {
 	pointer operator->() {
 		return &(operator*());
 	}
-	bool operator!=(const self &o) {
-		return o.node != node;
+	bool operator!=(const self &oth) {
+		return oth.node != node;
 	}
 	bool operator==(const self &o) {
 		return o.node == node;
@@ -167,12 +169,14 @@ public:
 	typedef base* link_type;
 	typedef Value value_type;
 	typedef value_type* pointer;
+	typedef const value_type* const_pointer;
 	typedef value_type& reference;
 	typedef const value_type& const_reference;
 	typedef Key key_type;
 	typedef size_t size_type;
 	typedef ptrdiff_t difference_type;
 	typedef jd_rb_tree_node_iterator<value_type, reference, pointer> iterator;
+	typedef const jd_rb_tree_node_iterator<value_type, reference, pointer> const_iterator;
 protected:
 	link_type get_node() { return node_allocator::allocate(); }
 	void put_ndoe(link_type p) { node_allocator::deallocate(p); }
@@ -229,7 +233,7 @@ protected:
 
 	void init() {
 		header.left = NIL();
-		header.left->parent = &header;
+		header.left->parent = NIL();
 		header.parent = NIL();
 		node_count = 0;
 	}
@@ -246,7 +250,7 @@ protected:
 	static link_type maximum(link_type x) { return base::maximum(x); }
 
     void clear(link_type root) {
-        if(root == NIL()) return ;
+        if(root == NIL()) return;
         clear(root->left);
         clear(root->right);
         destory_node(root);
@@ -327,6 +331,11 @@ protected:
 			if (left(root) == NIL() || right(root) == NIL()) {
 				link_type tmp = left(root) == NIL() ? right(root) : left(root);
 				tmp->color += root->color; // 会产生双黑节点
+
+				if (tmp != NIL()) {
+					tmp->parent = root->parent;
+				}
+				
 				destory_node(root);
 				return tmp;
 			} else {
@@ -337,12 +346,6 @@ protected:
 			}
 		}
 		return erase_maintain(root);
-	}
-
-	void erase(const iterator &itr) {
-		__erase(root(), key(itr.node));
-		node_count--;
-		header.left->color = BLACK;
 	}
 
 	std::pair<iterator, iterator> equal_range(const key_type &k) {
@@ -385,6 +388,9 @@ public:
 		init();
 		key_compare = Compare();
 	}
+	jd_rb_tree(const Compare &comp): key_compare(comp) {
+		init();
+	}
 	size_type count(const key_type &tartgetKey) {
 		std::pair<iterator, iterator> p = equal_range(tartgetKey);
 		return JD::distance(p.first, p.second);
@@ -401,6 +407,12 @@ public:
 			return std::pair<iterator, bool>(p, true);
 		}
 		return std::pair<iterator, bool>(p, false);
+	}
+
+	void erase(const iterator &itr) {
+		__erase(root(), key(itr.node));
+		node_count--;
+		header.left->color = BLACK;
 	}
 
 	size_type erase(const key_type &key) {
@@ -420,16 +432,15 @@ public:
 		}
 	}
 
-	bool empty() { return node_count == 0; }
-
-	size_type size() { return node_count; }
-
-	iterator begin() { return iterator(minimum(root())); }
-	iterator end() { return iterator(&header); }
+	bool empty() const { return node_count == 0; }
+	size_type size() const { return node_count; }
+	iterator begin() const { return iterator(minimum(root())); }
+	iterator end() const { return iterator((link_type)&header); }
 	 
 	void clear() {
 		if (node_count == 0) return;
 		clear(root());
+		init();
 	}
 
 	~jd_rb_tree() {

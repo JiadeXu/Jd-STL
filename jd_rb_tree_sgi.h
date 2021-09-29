@@ -398,6 +398,7 @@ public:
 	typedef Key key_type;
 	typedef Value value_type;
 	typedef value_type* pointer;
+	typedef const value_type* const_pointer;
 	typedef value_type& reference;
 	typedef const value_type& const_reference;
 	typedef rb_tree_node* link_type;
@@ -473,6 +474,7 @@ protected:
 	}
 public:
 	typedef __rb_tree_iterator<value_type, reference, pointer> iterator;
+	typedef const __rb_tree_iterator<value_type, reference, pointer> const_iterator;
 private:
 	iterator __insert(base_ptr x, base_ptr y, const value_type &v);
 	link_type copy(link_type x, link_type p);
@@ -491,6 +493,7 @@ private:
 			destory_node(static_cast<link_type>(p));
 		}
 	}
+public:
 	std::pair<iterator, iterator> equal_range(const key_type &k) {
 		return std::pair<iterator, iterator>(this->lower_bound(k), this->upper_bound(k));
 	}
@@ -520,7 +523,6 @@ private:
 		}
 		return iterator(last);
 	}
-public:
 	size_type count(const key_type &tartgetKey) {
 		std::pair<iterator, iterator> p = equal_range(tartgetKey);
 		return JD::distance(p.first, p.second);
@@ -560,12 +562,22 @@ public:
 	}
 public:
 	Compare key_comp() const { return key_compare; }
-	iterator begin() { return leftmost(); } // RB头节点 为最左的节点（最小）
-	iterator end() { return header; }
-	bool empty() { return node_count == 0; }
+	iterator begin() const { return leftmost(); } // RB头节点 为最左的节点（最小）
+	iterator end() const { return header; }
+	bool empty() const { return node_count == 0; }
 	size_type size() const { return node_count; }
 	size_type max_size() const { return size_type(-1); }
+	void swap(rb_tree &t) {
+		std::swap(t.header, header);
+		std::swap(t.node_count, node_count);
+		std::swap(t.key_compare, key_compare);
+	}
 public:
+	void insert_unique(const_iterator first, const_iterator last) {
+		for(;first != last; ++first) {
+			insert_unique(*first);
+		}
+	}
 	// 将x插入到 rb_tree 允许节点值重复
 	iterator insert_equal(const value_type &v) {
 		link_type y = header;

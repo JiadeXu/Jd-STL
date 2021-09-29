@@ -32,12 +32,16 @@ int main() {
 	for(auto i : xarr) {
 		itree.insert_unique(i);
 	}
+	cout << "begin " << *(itree.begin()) << endl;
+	itree.erase(itree.begin()); // bug  不能删除头节点的
 	cout << "size of tree " << itree.size() << endl;
 	for (auto i : itree) {
 		cout << i << " ";
 	}
 	cout << endl;
 	itree.preorder();
+
+	return 0;
 
 	cout << "erase start" << endl;
 	int ktd = 17;
