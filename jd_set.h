@@ -20,7 +20,8 @@ public:
     typedef Compare key_compare;
     typedef Compare value_compare;
 private:
-    typedef JD::rb_tree<Key, value_type, identity<value_type>, key_compare, Alloc> rep_type;
+    // typedef JD::rb_tree<Key, value_type, identity<value_type>, key_compare, Alloc> rep_type;
+    typedef JD::my_rb_tree<Key, value_type, identity<value_type>, key_compare, Alloc> rep_type;
 
     rep_type tree;
 public:
@@ -85,6 +86,8 @@ public:
             tree.insert_unique(*first);
         }
     }
+
+    void show() { tree.preorder(); }
     
     void erase(iterator position) {
         // typedef typename rep_type::iterator rep_iterator;
