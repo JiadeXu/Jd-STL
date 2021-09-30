@@ -59,17 +59,27 @@ int main() {
 	cout << endl;
 	itree.preorder();
 
-	// copy_t = itree;
+	copy_t = itree;
 
-	// itree.erase(ktd);
-	// cout << "after erase " << ktd << " size of tree " << itree.size() << endl;
-	// for (auto i : itree) {
-	// 	cout << i << " ";
-	// }
-	// cout << endl;
-	// itree.preorder();
-	// cout << "copy_t " << copy_t.size() << endl;
+	itree.erase(ktd);
+	cout << "after erase " << ktd << " size of tree " << itree.size() << endl;
+	for (auto i : itree) {
+		cout << i << " ";
+	}
+	cout << endl;
+	itree.preorder();
+	copy_t.erase(11);
 	
-	// copy_t.preorder();
+	cout << "src " << itree.size() << endl;
+	for (auto i : itree) {
+		cout << i << " ";
+	}
+	cout << endl;
+	
+	cout << "copy_t " << copy_t.size() << endl;
+	for (auto i : copy_t) {
+		cout << i << " ";
+	}
+	cout << endl;
 	return 0;
 }

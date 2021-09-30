@@ -202,7 +202,7 @@ protected:
 	link_type clone_node(link_type x) {
 		link_type tmp = create_node(x->value_field);
 		tmp->color = x->color;
-		tmp->father = tmp->left = tmp->right = NIL();
+		tmp->father = tmp->lchild = tmp->rchild = NIL();
 		return tmp;
 	}
 
@@ -254,7 +254,9 @@ protected:
 	void real_erase(const key_type &key) {
 		root() = __erase(root(), key);
 		root()->color = BLACK_NODE;
-		root()->father = virtual_node;
+		if (root() != NIL()) {
+			root()->father = virtual_node;
+		}
 	}
 
 	void clear(link_type root) {
@@ -263,6 +265,31 @@ protected:
         clear(root->rchild);
         destory_node(root);
     }
+
+	link_type copy(link_type src, link_type father) {
+		link_type top = clone_node(src);
+		top->father = father;
+
+		__JD_TRY {
+			if (right(src) != NIL()) {
+				top->rchild = this->copy(right(src), top);
+			}
+			father = top;
+			src = left(src);
+
+			while(src != NIL()) {
+				link_type y = this->clone_node(src);
+				father->lchild = y;
+				y->father = father;
+				if (src->rchild != NIL()) {
+					y->rchild = this->copy(right(src), y);
+				}
+				father = y;
+				src = left(src);
+			}
+		} __JD_UNWIND(__erase(top));
+		return top;
+	}
 private:
 	size_type node_count;
 	link_type virtual_node;
@@ -416,6 +443,21 @@ public:
 	// 测试函数
 	void preorder() {
 		__preorder(root());
+	}
+
+	my_rb_tree& operator=(const my_rb_tree& x) {
+		if (this != &x) {
+			clear();
+			node_count = 0;
+			key_compare = x.key_compare;
+			if (x.root() == NIL()) {
+				root() = NIL();
+			} else {
+				root() = copy(x.root(), virtual_node);
+				node_count = x.node_count;
+			}
+		}
+		return *this;
 	}
 };
 
