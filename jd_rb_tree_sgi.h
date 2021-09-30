@@ -476,7 +476,7 @@ public:
 	typedef __rb_tree_iterator<value_type, reference, pointer> iterator;
 	typedef const __rb_tree_iterator<value_type, reference, pointer> const_iterator;
 private:
-	iterator __insert(base_ptr x, base_ptr y, const value_type &v);
+	iterator __insert(base_ptr new_node, base_ptr _parent, const value_type &v);
 	link_type copy(link_type x, link_type p);
 	void __erase(link_type x);
 	void init() {
@@ -686,10 +686,10 @@ public:
 
 template<class Key, class Value, class KeyOfValue, class Compare, class Alloc>
 typename rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::iterator 
-	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__insert(base_ptr x_, base_ptr y_, const Value& v) {
+	rb_tree<Key, Value, KeyOfValue, Compare, Alloc>::__insert(base_ptr new_node, base_ptr _parent, const Value& v) {
 	// 参数 x_ 插入点 y_是父节点
-	link_type x = static_cast<link_type>(x_);
-	link_type y = static_cast<link_type>(y_);
+	link_type x = static_cast<link_type>(new_node);
+	link_type y = static_cast<link_type>(_parent);
 	link_type z;
 
 	// key_compare function<bool(const Key &, const Key &)>
