@@ -19,6 +19,19 @@ struct identity {
 	}
 };
 
+template<class V>
+struct JDLess {
+	bool operator()(const V &x, const V &y) const {
+		return x < y;
+	}
+};
+template<class V>
+struct JDGreat {
+	bool operator()(const V &x, const V &y) const {
+		return x > y;
+	}
+};
+
 JD_SPACE_END
 
 #endif

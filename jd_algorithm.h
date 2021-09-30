@@ -11,21 +11,9 @@
 #include "jd_iterator.h"
 #include "jd_macro.h"
 #include <iostream>
+#include "jd_function.h"
 
 JD_SPACE_BEGIN
-template<class V>
-struct JDLess {
-	bool operator()(const V &x, const V &y) const {
-		return x < y;
-	}
-};
-template<class V>
-struct JDGreat {
-	bool operator()(const V &x, const V &y) const {
-		return x > y;
-	}
-};
-
 // ----------------------------------堆相关开始----------------------------------
 template<class RandomAccessIterator, class Distance, class T, class Comp>
 void __push_heap(RandomAccessIterator first, Distance holeIndex, Distance topIndex, T value, const Comp &comp) {
