@@ -29,16 +29,22 @@ int main() {
 	JD::set<int> jset(vec.begin(), vec.end());
 	cout << jset.size() << endl;
 	jset.insert(89);
+	cout << "show 1" << endl;
 	display(jset);
+	jset.show();
 	jset.erase(jset.begin()); //删除了开头的5
 	cout << "erase " << jset.erase(11) << endl;
+	cout << "show 2" << endl;
 	display(jset);
+	jset.show();
 	cout << "erase [0, 3)" << endl;
 	auto itr = jset.begin();
 	itr.increament();
 	itr.increament();
 	itr.increament();
 	jset.erase(jset.begin(), itr);
+	cout << "show 3" << endl;
+	jset.show();
 	display(jset);
 	jset.clear();
 	cout << jset.size() << endl;
