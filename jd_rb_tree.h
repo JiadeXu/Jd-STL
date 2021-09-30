@@ -351,9 +351,10 @@ public:
 		return std::pair<iterator, iterator>(this->lower_bound(k), this->upper_bound(k));
 	}
 
+	// 找到以中序遍历为顺序，最前面的键为tartgetKey的节点
 	iterator lower_bound(const key_type &tartgetKey) {
-		link_type last = NIL(); // 不小于tartgetKey的最后一个节点；比targetKey大的最小节点
-		link_type cur = root(); // 当前节点
+		link_type last = NIL();
+		link_type cur = root();
 		while(cur != NIL()) {
 			// 找大于等于 targetKey
 			if (!key_compare(key(cur), tartgetKey)) {
@@ -365,8 +366,9 @@ public:
 		}
 		return iterator(last);
 	}
+	// 找到以中序遍历为顺序，最后一个的键为tartgetKey的节点的下一个节点
 	iterator upper_bound(const key_type &tartgetKey) {
-		link_type last = NIL(); // 不大于tartgetKey的最后一个节点；比targetKey小的最大节点
+		link_type last = NIL();
 		link_type cur = root(); // 当前节点
 		while(cur != NIL()) {
 			// 找小于targetkey的
