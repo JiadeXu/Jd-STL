@@ -58,8 +58,8 @@ protected:
 		return result;
 	}
 public:
-	iterator begin() { return start; }
-	iterator end() { return finish; }
+	iterator begin() const { return start; }
+	iterator end() const { return finish; }
 	size_type size() const { return finish - start; }
 	size_type capacity() const {
 		return size_type(end_of_storage - begin());
