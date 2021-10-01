@@ -8,6 +8,7 @@
 #ifndef _JD_VECTOR_H
 #define _JD_VECTOR_H
 
+#include "jd_construct.h"
 #include "jd_macro.h"
 #include "jd_alloc.h"
 #include "jd_uninitialized.h"
@@ -26,6 +27,7 @@ public:
 	typedef T value_type;
 	typedef value_type* pointer;
 	typedef value_type* iterator;
+	typedef const iterator const_iterator;
 	typedef value_type& reference;
 	typedef const value_type& const_reference;
 	typedef size_t size_type;
@@ -37,6 +39,9 @@ protected:
 	iterator end_of_storage; // 目前可用空间的尾
 	// 扩展空间
 	void insert_aux(iterator position, const T &x);
+	T* allocate(size_type n) {
+		return data_alloc::allocate(n);
+	}
 	void deallocate() {
 		if (start) {
 			data_alloc::deallocate(start, end_of_storage - start);
@@ -46,6 +51,11 @@ protected:
 		start = allocate_and_fill(n, value);
 		finish = start + n;
 		end_of_storage = finish;
+	}
+	iterator allocate_and_copy(size_type n, const_iterator first, const_iterator last) {
+		iterator result = allocate(n);
+		JD::uninitialized_copy(first, last, result);
+		return result;
 	}
 public:
 	iterator begin() { return start; }
@@ -110,11 +120,19 @@ public:
 		}
 	}
 
-	void resize(size_type size) {
-		resize(size, T());
-	}
-	void clear() {
-		erase(begin(), end());
+	void resize(size_type size) { resize(size, T()); }
+	void clear() { erase(begin(), end()); }
+
+	void reserve(size_type n) {
+		if (capacity() < n) {
+			const size_type old_size = size();
+			iterator tmp = allocate_and_copy(n, begin(), end());
+			JD::destory(begin(), end());
+			this->deallocate();
+			start = tmp;
+			finish = tmp + old_size;
+			end_of_storage = start + n;
+		}
 	}
 
   void swap(vector<value_type, Alloc>& x) {
