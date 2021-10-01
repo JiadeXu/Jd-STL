@@ -407,6 +407,12 @@ public:
 		root()->color = BLACK_NODE;
 	}
 
+	void insert_unique(const_iterator first, const_iterator last) {
+		for(;first != last; ++first) {
+			insert_unique(*first);
+		}
+	}
+
 	std::pair<iterator, bool> insert_unique(const value_type &v) {
 		auto p = find(KeyOfValue()(v));
 		if (p == end()) {
