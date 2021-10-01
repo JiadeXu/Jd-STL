@@ -74,8 +74,9 @@ public:
     bool empty() const { return tree.empty(); }
     size_type size() const { return tree.size(); }
     size_type max_size() const { return tree.max_size(); }
+    
     T& operator[](const key_type &k) {
-        
+        return (*(insert(std::pair<key_type, T>(k, T())).first)).second;
     }
 
     // insert / erase
