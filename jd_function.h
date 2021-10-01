@@ -32,6 +32,13 @@ struct JDGreat {
 	}
 };
 
+template<class T>
+struct select1st {
+	auto operator()(const T &x) -> decltype(x.first) {
+		return x.first;
+	}
+};
+
 JD_SPACE_END
 
 #endif
