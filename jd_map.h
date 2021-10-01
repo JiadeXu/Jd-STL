@@ -4,7 +4,6 @@
 #include "default_alloc_template.h"
 #include "jd_rb_tree.h"
 #include "jd_function.h"
-#include <__functional_base>
 #include <utility>
 
 JD_SPACE_BEGIN
