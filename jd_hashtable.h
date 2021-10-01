@@ -16,6 +16,7 @@
 #include "jd_vector.h"
 #include <algorithm>
 #include <utility>
+#include <vector>
 
 JD_SPACE_BEGIN
 
@@ -25,14 +26,14 @@ struct __hashtable_node {
 	Value val;
 };
 
-template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc = JD::alloc>
+template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
 class hashtable;
 
 // hashtable的迭代器必须永远维系着与整个 “buckets vector”的关系，并记录目前所指的节点。其前进操作
 // 是首先尝试从目前所指的节点出发，前进一个位置（节点），由于节点被安置于list内，所以利用节点的next指针即可
 template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
 struct __hashtable_iterator {
-	typedef hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc> hashtable;
+	typedef hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc> _hashtable;
 	typedef __hashtable_iterator<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc> iterator;
 	// typedef __hashtable_const_iterator<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc> const_iterator;
 	typedef __hashtable_node<Value> node;
@@ -45,9 +46,9 @@ struct __hashtable_iterator {
 	typedef Value* pointer;
 
 	node *cur;
-	hashtable* ht; // 保持对容器的连洁关系
+	_hashtable* ht; // 保持对容器的连洁关系
 
-	__hashtable_iterator(node *n, hashtable *tab): cur(n), ht(tab) {}
+	__hashtable_iterator(node *n, _hashtable *tab): cur(n), ht(tab) {}
 	__hashtable_iterator() {}
 	reference operator*() const { return cur->val; }
 	pointer operator->() const { return &(operator*()); }
@@ -93,7 +94,7 @@ inline unsigned long __next_prime(unsigned long n) {
 	return pos == last ? *(last - 1) : *pos;
 }
 
-template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
+template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc = JD::alloc>
 class hashtable {
 public:
 	typedef HashFunc hasher;
@@ -118,7 +119,7 @@ private:
 	typedef __hashtable_node<Value> node;
 	typedef simple_alloc<node, Alloc> node_allocator;
 
-	JD::vector<node*, Alloc> buckets;
+	JD::vector<node*> buckets;
 	size_type num_elements;
 
 private:
@@ -182,6 +183,10 @@ public:
 	void resize(size_type num_elements_hint);
 	// 键值不可重复
 	std::pair<iterator, bool> insert_unique_noresize(const value_type &obj);
+	std::pair<iterator, bool> insert_unique(const value_type &obj) {
+		resize(num_elements + 1);
+		return insert_unique_noresize(obj);
+	}
 	iterator insert_equal_noresize(const value_type &obj);
 	// 插入元素，允许重复
 	iterator insert_equal(const value_type &obj) {
@@ -191,6 +196,7 @@ public:
 	}
 	void clear();
 	void copy_from(const hashtable &ht);
+  	size_type size() const { return num_elements; }
 };
 
 template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
