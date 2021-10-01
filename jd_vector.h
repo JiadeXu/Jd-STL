@@ -116,6 +116,13 @@ public:
 	void clear() {
 		erase(begin(), end());
 	}
+
+  void swap(vector<value_type, Alloc>& x) {
+    std::swap(start, x.start);
+    std::swap(finish, x.finish);
+    std::swap(end_of_storage, x.end_of_storage);
+  }
+
 public:
 	value_type& operator[](size_type idx) {
 		return *(begin() + idx);
