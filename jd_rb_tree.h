@@ -120,10 +120,10 @@ struct jd_rb_tree_node_iterator {
 		}
 	}
 
-	reference operator*() {
+	reference operator*() const {
 		return node->value_field;
 	}
-	pointer operator->() {
+	pointer operator->() const {
 		return &(operator*());
 	}
 	bool operator!=(const self &o) {
