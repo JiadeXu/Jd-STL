@@ -95,14 +95,11 @@ public:
     std::pair<iterator, iterator> equal_range(const key_type &k) {
         return tree.equal_range(k);
     }
-    friend bool operator==(const map&, const map&);
+    friend bool operator==(const map<Key, T, Compare, Alloc>& x, const map<Key, T, Compare, Alloc> &y) {
+        return x.tree == y.tree;
+    }
     // friend bool operator<(const map&, const map&);
 };
-
-template<class Key, class T, class Compare, class Alloc>
-inline bool operator==(const map<Key, T, Compare, Alloc> &x, const map<Key, T, Compare, Alloc> &y) {
-    return x.tree == y.tree;
-}
 
 // template<class Key, class T, class Compare, class Alloc>
 // inline bool operator<(const map<Key, T, Compare, Alloc> &x, const map<Key, T, Compare, Alloc> &y) {
