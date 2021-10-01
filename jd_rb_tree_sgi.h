@@ -357,7 +357,7 @@ struct __rb_tree_iterator : public __rb_tree_base_iterator {
 	__rb_tree_iterator(link_type x) { node = x; }
 	__rb_tree_iterator(const iterator &x) { node = x.node; }
 
-	reference operator*() { return ((link_type) node)->value_field; }
+	reference operator*() const { return ((link_type) node)->value_field; }
 #ifndef __JD_STL_NO_ARROW_OPERATOR
 	pointer operator->() const { return &(operator*()); }
 #endif
