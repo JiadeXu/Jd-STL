@@ -32,9 +32,16 @@ struct JDGreat {
 	}
 };
 
-template<class T>
-struct select1st {
-	auto operator()(const T &x) -> decltype(x.first) {
+template <class _Arg, class _Result>
+struct unary_function {
+  typedef _Arg argument_type;
+  typedef _Result result_type;
+};
+
+
+template<class _Pair>
+struct select1st : public unary_function<_Pair, typename _Pair::first_type> {
+	const typename _Pair::first_type& operator()(const _Pair &x) const {
 		return x.first;
 	}
 };
