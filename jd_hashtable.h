@@ -197,6 +197,17 @@ public:
 	void clear();
 	void copy_from(const hashtable &ht);
   	size_type size() const { return num_elements; }
+
+	// 从小至大排序
+	iterator begin() {
+		for (size_type i = 0 ; i < buckets.size(); i++) {
+			if (buckets[i] != 0) {
+				return iterator(buckets[i], this);
+			}
+		}
+		return end();
+	}
+	iterator end() { return iterator(0, this); }
 };
 
 template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
