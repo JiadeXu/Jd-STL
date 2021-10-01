@@ -139,7 +139,7 @@ struct jd_rb_tree_node_iterator {
 		return tmp;
 	}
 	// ++i
-	self operator++() {
+	self& operator++() {
 		increament();
 		return *this;
 	}
@@ -150,7 +150,7 @@ struct jd_rb_tree_node_iterator {
 		return tmp;
 	}
 	// --i
-	self operator--() {
+	self& operator--() {
 		decreament();
 		return *this;
 	}

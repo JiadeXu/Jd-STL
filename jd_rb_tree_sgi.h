@@ -368,7 +368,7 @@ struct __rb_tree_iterator : public __rb_tree_base_iterator {
 		return oth.node == node;
 	}
 	// ++i
-	self operator++() { increament(); return *this; }
+	self& operator++() { increament(); return *this; }
 	// i++
 	self operator++(int) {
 		self tmp = *this;
@@ -377,7 +377,7 @@ struct __rb_tree_iterator : public __rb_tree_base_iterator {
 	}
 
 	// --i
-	self operator--() { decreament(); return *this; }
+	self& operator--() { decreament(); return *this; }
 	// i--
 	self operator--(int) {
 		self tmp = *this;
