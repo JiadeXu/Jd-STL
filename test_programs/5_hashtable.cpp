@@ -61,11 +61,22 @@ int main() {
 	cout << "end" << endl;
 	cout << endl;
 	auto itr2 = iht.begin();
-	for (int i = 0; i < iht.size() && itr2.cur; ++i, ++itr2) {
+	for (int i = 0; i < iht.size(); ++i, ++itr2) {
 		cout << *itr2 << " ";
 	}
 	cout << endl;
 	cout << *(iht.find(2)) << endl;
 	cout << iht.count(2) << endl;
+
+	int i = 2;
+	cout << "erase " << i << endl;
+
+	iht.erase(2);
+	iht.erase(iht.find(108));
+	itr2 = iht.begin();
+	for (int i = 0; i < iht.size(); ++i, ++itr2) {
+		cout << *itr2 << " ";
+	}
+	cout << endl;
 	return 0;
 }

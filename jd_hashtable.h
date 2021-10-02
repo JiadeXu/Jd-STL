@@ -229,6 +229,10 @@ public:
 		resize(num_elements + 1);
 		return insert_equal_noresize(obj);
 	}
+
+	size_type erase(const key_type &key);
+	void erase(const iterator &itr);
+
 	void clear();
 	void copy_from(const hashtable &ht);
   	size_type size() const { return num_elements; }
@@ -283,8 +287,8 @@ public:
 		for (int __n = 0; __n < h1.buckets.size(); ++__n) {
 			_Node* __cur1 = h1.buckets[__n];
 			_Node* __cur2 = h2.buckets[__n];
-			for ( ; __cur1 && __cur2 && __cur1->_M_val == __cur2->_M_val;
-				__cur1 = __cur1->_M_next, __cur2 = __cur2->_M_next)
+			for ( ; __cur1 && __cur2 && __cur1->val == __cur2->val;
+				__cur1 = __cur1->next, __cur2 = __cur2->next)
 			{}
 			if (__cur1 || __cur2)
 			return false;
@@ -371,6 +375,69 @@ typename hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::iterator
 	++num_elements;
 	return iterator(tmp, this);
 }
+
+
+template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
+typename hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::size_type 
+	hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::erase(const key_type &key) {
+	const size_type n = bkt_num_key(key);
+	node *first = buckets[n];
+	size_type erased = 0;
+
+	if (first) {
+		node *cur = first;
+		node *next = cur->next;
+		while(next) {
+			if (equals(key, get_key(next->val))) {
+				cur->next = next->next;
+				delete_node(next);
+				next = cur->next;
+				++erased;
+				--num_elements;
+			} else {
+				cur = next;
+				next = cur->next;
+			}
+		}
+		if (equals(get_key(first->val), key)) {
+			buckets[n] = first->next;
+			delete_node(first);
+			++erased;
+			--num_elements;
+		}
+	}
+	return erased;
+}
+
+template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
+void hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::erase(const typename hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::iterator &itr) {
+	node *p = itr.cur;
+	if (p) {
+		const size_type n = bkt_num_key(p->val);
+		node *cur = buckets[n];
+
+		if (cur == p) {
+			// 头结点就是
+			buckets[n] = cur->next;
+			delete_node(p);
+			--num_elements;
+		} else {
+			node *next = cur->next;
+			while (next) {
+				if (next == p) {
+					cur->next = next->next;
+					delete_node(next);
+					--num_elements;
+					break;
+				} else {
+					cur = next;
+					next = next->next;
+				}
+			}
+		}
+	}
+}
+
 
 template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
 void hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::clear() {
