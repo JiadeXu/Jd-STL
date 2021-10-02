@@ -156,6 +156,9 @@ public:
 		initialize_buckets(n);
 	}
 
+	hasher hash_funct() { return hash; }
+  	key_equal key_eq() const { return equals; }
+
 	// bucket 个数即 buckets vector 的大小
 	size_type bucket_count() const { return buckets.size(); }
 	// ...
