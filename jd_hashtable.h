@@ -254,6 +254,28 @@ public:
 		return rs;
 	}
 
+	std::pair<iterator, iterator> equal_range(const key_type &key) {
+		typedef std::pair<iterator, iterator> pii;
+		const size_type n = bkt_num_key(key);
+
+		for (node *first = buckets[n]; first; first = first->next) {
+			if (equal(get_key(first->val), key)) {
+				for (node *cur = first->next; cur; cur = cur->next) {
+					if (!equal(get_key(cur->val), key)) {
+						return pii(iterator(first, this), iterator(cur, this));
+					}
+				}
+				for (size_type m = n + 1; m < buckets.size(); m++) {
+					if (buckets[m]) {
+						return pii(iterator(first, this), iterator(buckets[m], this));
+					}
+				}
+			}
+		}
+
+		return pii(end(), end());
+	}
+
 	friend bool operator==(const hashtable &h1, const hashtable &h2) {
 		typedef hashtable::node _Node;
 		if (h1.buckets.size() != h2.buckets.size())
