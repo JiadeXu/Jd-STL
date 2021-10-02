@@ -15,6 +15,8 @@
 #include "jd_alloc.h"
 #include "jd_vector.h"
 #include <algorithm>
+#include <iostream>
+#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -111,6 +113,8 @@ public:
 	typedef const value_type& const_reference;
 	typedef __hashtable_iterator<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc> iterator;
 
+  friend struct
+  __hashtable_iterator<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>;
 private:
 	hasher hash;
 	key_equal equals;
@@ -119,7 +123,7 @@ private:
 	typedef __hashtable_node<Value> node;
 	typedef simple_alloc<node, Alloc> node_allocator;
 
-	JD::vector<node*> buckets;
+	JD::vector<node*, Alloc> buckets;
 	size_type num_elements;
 
 private:
@@ -139,6 +143,7 @@ private:
 		const size_type n_buckets = next_size(n);
 		buckets.reserve(n_buckets);
 		buckets.insert(buckets.end(), n_buckets, (node *) 0);
+        num_elements = 0;
 	}
 
 	size_type next_size(size_type n) const { return __next_prime(n); }
@@ -161,13 +166,13 @@ public:
 	}
 
 	// 接受实值（value）和buckets 个数
-	size_type bkt_num(const value_type &obj, size_type n) const {
-		return bkt_num_key(get_key(obj), n);
+	size_type bkt_num(const Value &obj, size_t n) const {
+		return bkt_num_key(ExtractKey()(obj), n);
 	}
 
 	// 接受实值
-	size_type bkt_num(const value_type &obj) const {
-		return bkt_num_key(get_key(obj));
+	size_type bkt_num(const Value &obj) const {
+		return bkt_num_key(ExtractKey()(obj));
 	}
 
 	// 只接受键值
@@ -179,6 +184,24 @@ public:
 	size_type bkt_num_key(const key_type &key, size_type n) const {
 		return hash(key) % n;
 	}
+
+	size_type elems_in_bucket(size_type __bucket) const {
+		size_type __result = 0;
+		for (node* __cur = buckets[__bucket]; __cur != 0; __cur = __cur->next)
+			__result += 1;
+		return __result;
+	}
+
+	// 从小至大排序
+	iterator begin() {
+		for (size_type i = 0 ; i < buckets.size(); i++) {
+			if (buckets[i] != 0) {
+				return iterator(buckets[i], this);
+			}
+		}
+		return end();
+	}
+	iterator end() { return iterator(0, this); }
 
 	void resize(size_type num_elements_hint);
 	// 键值不可重复
@@ -197,32 +220,43 @@ public:
 	void clear();
 	void copy_from(const hashtable &ht);
   	size_type size() const { return num_elements; }
-
-	// 从小至大排序
-	iterator begin() {
-		for (size_type i = 0 ; i < buckets.size(); i++) {
-			if (buckets[i] != 0) {
-				return iterator(buckets[i], this);
+	iterator find(const key_type &key) {
+		size_type bucket_pos = bkt_num(key);
+		node *first = buckets[bucket_pos];
+		for (; first != 0; first = first->next) {
+			if (equals(first->val, key)) {
+				break;
 			}
 		}
-		return end();
+		return iterator(first, this);
 	}
-	iterator end() { return iterator(0, this); }
+
+	size_type count(const key_type &key) {
+		size_type rs = 0;
+		const size_type bucket_pos = bkt_num_key(key);
+		for (const node *cur = buckets[bucket_pos]; cur; cur = cur->next) {
+			if (equals(get_key(cur->val), key)) {
+				rs++;
+			}
+		}
+		return rs;
+	}
 };
 
 template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
 void hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::resize(size_type num_elements_hint) {
 	const size_type old_n = buckets.size();
 	if (num_elements_hint > old_n) {
+		std::cout << "按时";
 		// 1
 		const size_type n = next_size(num_elements_hint);
 		if (n > old_n) {
-			JD::vector<node *, Alloc> new_buckets(n, (node *)0); // 新buckets
+			JD::vector<node*, Alloc> new_buckets(n, (node *)0); // 新buckets
 			// 2
 			for (size_type old_pos = 0; old_pos < buckets.size(); old_pos++) {
 				node *first = buckets[old_pos];
-				while(first != 0) {
-					size_type new_pos = btn_num(first->val, n);
+				while(first) {
+					size_type new_pos = bkt_num(first->val, n);
 					// 旧bucket指向其所对应的下一个节点
 					buckets[old_pos] = first->next;
 					// 将当前节点插入到新 bucket 内，成为其对应bucket的头节点
@@ -268,9 +302,8 @@ typename hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::iterator
 {
 	const size_type n = bkt_num(obj);
 	node *first = buckets[n];
-
 	// 如果buckets[n] 已被占用，此时first将不为0
-	for (node *cur = first; cur != 0; cur = cur->next) {
+	for (node *cur = first; cur; cur = cur->next) {
 		if (equals(get_key(cur->val), get_key(obj))) {
 			// 如果发现与链表中的某键值相同，就马上插入，然后返回
 			node *tmp = new_node(obj);
