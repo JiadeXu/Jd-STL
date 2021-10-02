@@ -14,8 +14,9 @@ JD_SPACE_BEGIN
 
 template<class OutputIterator, class Size, class T>
 OutputIterator fill_n(OutputIterator first, Size n, const T &x) {
-	for (; n > 0; --n, ++first) {
-		*first = x;
+	OutputIterator cur = first;
+	while(n--) {
+		*cur = x;
 	}
 	return first;
 }

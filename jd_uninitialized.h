@@ -12,6 +12,7 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include "jd_type_traits.h"
 #include "jd_algobase.h"
 #include "jd_macro.h"
@@ -31,8 +32,7 @@ inline ForwardIterator __uninitialized_fill_n_aux(ForwardIterator first, Size n,
 
 template<class ForwardIterator, class Size, class T>
 inline ForwardIterator __uninitialized_fill_n_aux(ForwardIterator first, Size n, const T &x, __true_type) {
-	// return JD::fill_n(first, n, x); // 6.4.2节
-	return std::fill_n(first, n, x); // 6.4.2节
+	return JD::fill_n(first, n, x); // 6.4.2节
 }
 
 template<class ForwardIterator, class Size, class T, class T1>
