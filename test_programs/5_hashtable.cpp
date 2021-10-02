@@ -7,6 +7,7 @@
 
 #include "../jd_hashtable.h"
 #include "../jd_function.h"
+#include "../jd_hash_fun.h"
 #include <functional>
 #include <iostream>
 using namespace std;
@@ -14,10 +15,10 @@ using namespace std;
 int main() {
 	JD::hashtable<int,
 				int, 
-				std::hash<int>, 
+				JD::my_hash<int>, 
 				JD::identity<int>,
 				std::equal_to<int> >
-		iht(50, std::hash<int>(), std::equal_to<int>());
+		iht(50, JD::my_hash<int>(), std::equal_to<int>());
 	
 	cout << iht.size() << endl;
 	cout << iht.bucket_count() << endl;
