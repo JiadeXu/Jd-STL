@@ -247,7 +247,6 @@ template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKe
 void hashtable<Value, Key, HashFunc, ExtractKey, EqualKey, Alloc>::resize(size_type num_elements_hint) {
 	const size_type old_n = buckets.size();
 	if (num_elements_hint > old_n) {
-		std::cout << "按时";
 		// 1
 		const size_type n = next_size(num_elements_hint);
 		if (n > old_n) {
