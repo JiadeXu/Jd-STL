@@ -16,7 +16,7 @@ template<class OutputIterator, class Size, class T>
 OutputIterator fill_n(OutputIterator first, Size n, const T &x) {
 	OutputIterator cur = first;
 	while(n--) {
-		*cur = x;
+		*(cur++) = x;
 	}
 	return first;
 }
