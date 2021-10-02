@@ -16,6 +16,7 @@
 #include "jd_vector.h"
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <utility>
 #include <vector>
@@ -205,6 +206,14 @@ public:
 		return end();
 	}
 	iterator end() { return iterator(0, this); }
+
+	void swap(hashtable &h) {
+		std::swap(hash, h.hash);
+		std::swap(equals, h.equals);
+		std::swap(get_key, h.get_key);
+		std::swap(num_elements, h.num_elements);
+		buckets.swap(h.buckets);
+	}
 
 	void resize(size_type num_elements_hint);
 	// 键值不可重复
