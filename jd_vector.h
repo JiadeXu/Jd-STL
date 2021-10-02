@@ -149,7 +149,12 @@ protected:
 	// 配置空间并填满内容
 	iterator allocate_and_fill(size_type n, const T& x) {
 		iterator result = data_alloc::allocate(n);
-		JD::uninitialized_fill_n(start, n, x);
+		// JD::uninitialized_fill_n(start, n, x);
+		iterator cur = result;
+		while(n--) {
+			*cur = x;
+			cur++;
+		}
 		return result;
 	}
 };
