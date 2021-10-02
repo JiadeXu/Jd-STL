@@ -253,6 +253,22 @@ public:
 		}
 		return rs;
 	}
+
+	friend bool operator==(const hashtable &h1, const hashtable &h2) {
+		typedef hashtable::node _Node;
+		if (h1.buckets.size() != h2.buckets.size())
+			return false;
+		for (int __n = 0; __n < h1.buckets.size(); ++__n) {
+			_Node* __cur1 = h1.buckets[__n];
+			_Node* __cur2 = h2.buckets[__n];
+			for ( ; __cur1 && __cur2 && __cur1->_M_val == __cur2->_M_val;
+				__cur1 = __cur1->_M_next, __cur2 = __cur2->_M_next)
+			{}
+			if (__cur1 || __cur2)
+			return false;
+		}
+		return true;
+	}
 };
 
 template<class Value, class Key, class HashFunc, class ExtractKey, class EqualKey, class Alloc>
