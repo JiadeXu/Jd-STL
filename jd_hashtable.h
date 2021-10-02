@@ -247,6 +247,22 @@ public:
 		return iterator(first, this);
 	}
 
+	reference find_or_insert(const value_type &obj) {
+		resize(num_elements + 1);
+		size_type n = bkt_num(obj);
+		node *first = buckets[n];
+		for (node *cur = first; cur; cur = cur->next) {
+			if (equals(get_key(cur->val), get_key(obj))) {
+				return cur->val;
+			}
+		}
+		node *tmp = new_node(obj);
+		tmp->next = first;
+		buckets[n] = tmp;
+		++num_elements;
+		return tmp->val;
+	}
+
 	size_type count(const key_type &key) {
 		size_type rs = 0;
 		const size_type bucket_pos = bkt_num_key(key);
