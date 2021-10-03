@@ -88,7 +88,7 @@ inline ForwardIterator __uninitialized_copy_aux(InputIteartor first, InputIteart
 // 是 Palin Old Data 类型
 template<class InputIteartor, class ForwardIterator>
 inline ForwardIterator __uninitialized_copy_aux(InputIteartor first, InputIteartor last, ForwardIterator result, __true_type) {
-	return std::copy(first, last, result); // 调用STL copy
+	return JD::copy(first, last, result); // 调用STL copy
 }
 
 template<class InputIteartor, class ForwardIterator, class T>

@@ -10,8 +10,11 @@
 
 #include "jd_macro.h"
 #include "jd_iterator.h"
+#include "jd_type_traits.h"
 #include <algorithm>
 #include <cstring>
+#include <iostream>
+#include <ostream>
 #include <utility>
 
 JD_SPACE_BEGIN
@@ -175,6 +178,92 @@ inline void swap(T &a, T &b) {
 	T tmp = a;
 	a = b;
 	b = tmp;
+}
+
+// copy
+template<class InputIterator, class OutputIterator>
+inline OutputIterator __copy(InputIterator first, InputIterator last, OutputIterator result, JD::input_iterator_tag) {
+	J_LOG();
+	// 以迭代器等同与否，决定循环是否继续 速度较慢
+	for (; first != last; ++first) {
+		*result = *first;
+	}
+	return result;
+}
+
+template<class RandomAccessIterator, class OutputIterator, class Distance>
+inline OutputIterator __copy_d(RandomAccessIterator first, RandomAccessIterator last, OutputIterator result, Distance*) {
+	// 以n决定循环的执行次数，速度快
+	for (Distance n = last - first; n > 0; --n, ++result, ++first) {
+		*result = *first;
+	}
+	J_LOG();
+	return result;
+}
+
+template<class RandomAccessIterator, class OutputIterator>
+inline OutputIterator __copy(RandomAccessIterator first, RandomAccessIterator last, OutputIterator result, JD::random_access_iterator_tag) {
+	// 以迭代器等同与否，决定循环是否继续 速度较慢
+	J_LOG();
+	return __copy_d(first, last, result, distance_type(first));
+}
+
+template<class InputIterator, class OutputIterator>
+struct __copy_dispatch {
+	OutputIterator operator()(InputIterator first, InputIterator last, OutputIterator result) {
+		// typedef typename JD::iterator_traits<InputIterator>::iterator_category
+		J_LOG();
+		return __copy(first, last, result, JD::iterator_category(first));
+	}
+};
+
+template<class T>
+inline T* __copy_t(const T *first, const T *last, T *result, JD::__true_type) {
+	J_LOG();
+	memmove(result, first, sizeof(T) * (last - first));
+	return result + (last - first);
+}
+
+template<class T>
+inline T* __copy_t(const T *first, const T *last, T *result, JD::__false_type) {
+	J_LOG();
+	return __copy_d(first, last, result, (ptrdiff_t *) 0);
+}
+
+template<class T>
+struct __copy_dispatch<T*, T*> {
+	T* operator()(T* first, T* last, T* result) {
+		J_LOG();
+		typedef typename JD::__type_traits<T>::has_tirvial_assignment_operator t;
+		return __copy_t(first, last, result, t());
+	}
+};
+
+template<class T>
+struct __copy_dispatch<const T*, T*> {
+	T* operator()(T* first, T* last, T* result) {
+		J_LOG();
+		typedef typename JD::__type_traits<T>::has_tirvial_assignment_operator t;
+		return __copy_t(first, last, result, t());
+	}
+};
+
+template<class InputIterator, class OutputIterator>
+inline OutputIterator copy(InputIterator first, InputIterator last, OutputIterator result) {
+	J_LOG();
+	return __copy_dispatch<InputIterator, OutputIterator>()(first, last, result);
+}
+
+inline char *copy(const char *first, const char *last, char *result) {
+	J_LOG();
+	memmove(result, first, last - first);
+	return result + (last - first);
+}
+
+inline wchar_t *copy(const wchar_t *first, const wchar_t *last, wchar_t *result) {
+	J_LOG();
+	memmove(result, first, (last - first) * sizeof(wchar_t));
+	return result + (last - first);
 }
 
 JD_SPACE_END
