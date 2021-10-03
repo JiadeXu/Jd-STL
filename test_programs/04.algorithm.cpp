@@ -39,7 +39,7 @@ SBEGIN(t1)
 #define TEST_FUNC(arr, len, func, args...) { \
 	std::cout << #func << endl; \
 	int *num = new int[len]; \
-	std::copy(arr, arr + len, num); \
+	JD::copy(arr, arr + len, num); \
 	func(args); \
 	display(num, num + MAXN); \
 	delete [] num; \
