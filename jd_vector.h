@@ -104,7 +104,7 @@ public:
 	// 清除某位置上的元素
 	iterator erase(iterator position) {
 		if (position + 1 != end()) {
-			std::copy(position + 1, finish, position); // 后续元素向前移动
+			JD::copy(position + 1, finish, position); // 后续元素向前移动
 		}
 		--finish;
 		destory(finish);
@@ -112,7 +112,7 @@ public:
 	}
 	// 清除[first, last) 内的所有元素
 	iterator erase(iterator first, iterator last) {
-		iterator i = std::copy(last, finish, first);
+		iterator i = JD::copy(last, finish, first);
 		size_type dis = finish - i;
 		destory(i, finish);
 		finish = finish - dis;
