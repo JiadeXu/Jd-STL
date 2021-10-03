@@ -233,7 +233,7 @@ protected:
 				JD::copy(start.node, finish.node + 1, new_nstart);
 			} else {
 				// 向后移动
-				std::copy_backward(start.node, finish.node + 1, new_nstart + old_num_nodes);
+				JD::copy_backward(start.node, finish.node + 1, new_nstart + old_num_nodes);
 			}
 		} else {
 			// 空间不足 重新添加空间
@@ -396,7 +396,7 @@ public:
 		difference_type index = pos - start; // 清除点之前的元素
 		if (index < (size() >> 1)) {
 			// 如果清除点之前的元素较少
-			std::copy_backward(start, pos, next); // 就移动之前的元素
+			JD::copy_backward(start, pos, next); // 就移动之前的元素
 			pop_front();
 		} else {
 			JD::copy(next, finish, pos); // 否则就移动后面的元素到前面
@@ -415,7 +415,7 @@ public:
 		difference_type elems_before = first - start;
 		if (elems_before < (size() - n) / 2) {
 			// 区间前面的元素较少
-			std::copy_backward(start, first, last);
+			JD::copy_backward(start, first, last);
 			iterator new_nstart = start + n;
 			JD::destory(start, new_nstart);
 			// 以下将冗余的缓冲区释放
@@ -470,7 +470,7 @@ public:
 			iterator back2 = back1;
 			--back2;
 			pos = start + index;
-			std::copy_backward(pos, back2, back1);
+			JD::copy_backward(pos, back2, back1);
 		}
 		*pos = x_copy;
 		return pos;

@@ -174,7 +174,7 @@ void vector<T, Alloc>::insert_aux(iterator position, const T &x) {
 		construct(finish, *(finish - 1));
 		++finish;
 		T x_copy = x;
-		std::copy_backward(position, finish - 2, finish - 1);
+		JD::copy_backward(position, finish - 2, finish - 1);
 		*position = x_copy;
 	} else {
 		// 无备用空间
@@ -222,7 +222,7 @@ void vector<T, Alloc>::insert(iterator position, size_type n, const T &x) {
 				JD::uninitialized_copy(finish - n, finish, finish);
 				finish += n; // 尾端后移
 				// 将原来位置上的值赋值到各新位置上
-				std::copy_backward(position, old_finish - n, old_finish);
+				JD::copy_backward(position, old_finish - n, old_finish);
 				// 从插入点开始填新值
 				std::fill(position, position + n, x);
 			} else {
