@@ -307,6 +307,15 @@ public:
 	deque(int n, const value_type &value): start(), finish(), map(0), map_size(0) {
 		fill_initialize(n, value);
 	}
+	template<class InputIterator>
+	deque(InputIterator first, InputIterator last): start(), finish(), map(0), map_size(0) {
+		typedef typename JD::iterator_traits<InputIterator>::value_type v_t;
+		fill_initialize(0, v_t());
+		for (; first != last; ++first) {
+			push_back(*first);
+		}
+	}
+
 	iterator begin() { return start; }
 	iterator end() { return finish; }
 
