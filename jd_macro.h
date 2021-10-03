@@ -21,4 +21,9 @@ JD_SPACE_BEGIN
 struct __true_type {};
 struct __false_type {};
 JD_SPACE_END
+#ifndef JD_DBG
+#define J_LOG()
+#else
+#define J_LOG() std::cout << __func__ << std::endl;
+#endif
 #endif
