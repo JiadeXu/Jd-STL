@@ -72,6 +72,12 @@ public:
 	vector(int n, const T &value) { fill_initialize(n, value); }
 	vector(long n, const T &value) { fill_initialize(n, value); }
 	explicit vector(size_type n) { fill_initialize(n, T()); }
+	template<class InputIterator>
+	vector(InputIterator first, InputIterator last): start(0), finish(0), end_of_storage(0) {
+		for (;first != last; ++first) {
+			push_back(*first);
+		}
+	}
 
 	~vector() {
 		destory(start, finish);
