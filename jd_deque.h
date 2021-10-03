@@ -230,7 +230,7 @@ protected:
 			new_nstart = map + (map_size - new_num_nodes) / 2 + (add_at_front ? nodes_to_add : 0);
 			if (new_nstart < start.node) {
 				// 向前移动
-				std::copy(start.node, finish.node + 1, new_nstart);
+				JD::copy(start.node, finish.node + 1, new_nstart);
 			} else {
 				// 向后移动
 				std::copy_backward(start.node, finish.node + 1, new_nstart + old_num_nodes);
@@ -242,7 +242,7 @@ protected:
 			map_pointer new_map = map_allocator::allocate(new_map_size);
 			new_nstart = new_map + (new_map_size - new_num_nodes) / 2 + (add_at_front ? nodes_to_add : 0);
 			// 拷贝原内容
-			std::copy(start.node, finish.node + 1, new_nstart);
+			JD::copy(start.node, finish.node + 1, new_nstart);
 			// 释放原map
 			map_allocator::deallocate(map, map_size);
 			// 
@@ -399,7 +399,7 @@ public:
 			std::copy_backward(start, pos, next); // 就移动之前的元素
 			pop_front();
 		} else {
-			std::copy(next, finish, pos); // 否则就移动后面的元素到前面
+			JD::copy(next, finish, pos); // 否则就移动后面的元素到前面
 			pop_back();
 		}
 		return start + index;
@@ -425,7 +425,7 @@ public:
 			start = new_nstart;
 		} else {
 			// 后面的元素较少
-			std::copy(last, finish, first);
+			JD::copy(last, finish, first);
 			iterator new_finish = finish - n;
 			JD::destory(new_finish, finish); // 析构冗余元素
 			for (map_pointer cur = new_finish.node + 1; cur <= finish.node; cur++) {
@@ -462,7 +462,7 @@ public:
 			pos = start + index;
 			iterator pos1 = pos;
 			++pos1;
-			std::copy(front2, pos1, front1);
+			JD::copy(front2, pos1, front1);
 		} else {
 			push_back(back());
 			iterator back1 = finish;
