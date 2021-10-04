@@ -727,6 +727,52 @@ ForwardIterator min_element(ForwardIterator first, ForwardIterator last, Compare
 	return result;
 }
 
+template<class BidirectionalIter1, class BidirectionalIter2, class BidirectionalIter3>
+BidirectionalIter3 __merge_backward(BidirectionalIter1 first1, BidirectionalIter1 last1, BidirectionalIter2 first2, BidirectionalIter2 last2, BidirectionalIter3 result) {
+	if (first1 == last1) return JD::copy_backward(first2, last2, result);
+	if (first2 == last2) return JD::copy_backward(first1, last1, result);
+	--last1;
+	--last2;
+	for(;;) {
+		if (*last2 < *last1) {
+			*--result = *last1;
+			if (first1 == last1) {
+				return JD::copy_backward(first2, ++last2, result);
+			}
+			--last1;
+		} else {
+			*--result = *last2;
+			if (first2 == last2) {
+				return JD::copy_backward(first1, ++last1, result);
+			}
+			--last2;
+		}
+	}
+}
+
+template<class BidirectionalIter1, class BidirectionalIter2, class BidirectionalIter3, class Compare>
+BidirectionalIter3 __merge_backward(BidirectionalIter1 first1, BidirectionalIter1 last1, BidirectionalIter2 first2, BidirectionalIter2 last2, BidirectionalIter3 result, Compare comp) {
+	if (first1 == last1) return JD::copy_backward(first2, last2, result);
+	if (first2 == last2) return JD::copy_backward(first1, last1, result);
+	--last1;
+	--last2;
+	for(;;) {
+		if (comp(*last2, *last1)) {
+			*--result = *last1;
+			if (first1 == last1) {
+				return JD::copy_backward(first2, ++last2, result);
+			}
+			--last1;
+		} else {
+			*--result = *last2;
+			if (first2 == last2) {
+				return JD::copy_backward(first1, ++last1, result);
+			}
+			--last2;
+		}
+	}
+}
+
 template<class InputIterator1, class InputIterator2, class OutputIterator>
 OutputIterator merge(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
 	while(first1 != last1 && first2 != last2) {
