@@ -9,6 +9,8 @@
 #define __JD_STL_TEMPLATE_NULL template<>
 #define __JD_STL_TEMPLATE_ARGS <>
 
+#define __jd_threshold 16
+
 #ifdef __JD_USE_EXCEPTIONS
 #define __JD_TRY   try
 #define __JD_UNWIND(action)   catch(...) { action; throw; }
