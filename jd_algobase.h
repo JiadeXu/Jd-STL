@@ -413,6 +413,604 @@ OutputIterator set_symmetric_difference(InputIterator1 first1, InputIterator1 la
 	return JD::copy(first2, last2, JD::copy(first1, last1, result));
 }
 
+template<class ForwardIterator>
+ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last) {
+	if (first == last) return last;
+	ForwardIterator next = first;
+	while (++next != last) {
+		if (*first == *next) return first;
+		first = next;
+	}
+	return last;
+}
+
+template<class ForwardIterator, class BinaryPredicate>
+ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last, BinaryPredicate binary_pred) {
+	if (first == last) return last;
+	ForwardIterator next = first;
+	while (++next != last) {
+		if (binary_pred(*first, *next)) return first;
+		first = next;
+	}
+	return last;
+}
+
+template<class InputIterator, class T>
+typename JD::iterator_traits<InputIterator>::difference_type count(InputIterator first, InputIterator last, const T &value) {
+	typename JD::iterator_traits<InputIterator>::difference_type n = 0;
+	for (; first != last; ++first) {
+		if (*first == value) {
+			++n;
+		}
+	}
+	return n;
+}
+
+template<class InputIterator, class Predicate>
+typename JD::iterator_traits<InputIterator>::difference_type count_if(InputIterator first, InputIterator last, Predicate pred) {
+	typename JD::iterator_traits<InputIterator>::difference_type n = 0;
+	for (; first != last; ++first) {
+		if (pred(*first)) {
+			++n;
+		}
+	}
+	return n;
+}
+
+template<class ForwardIteartor1, class ForwardIteartor2, class Distance1, class Distance2>
+ForwardIteartor1 __search(ForwardIteartor1 first1, ForwardIteartor1 last1, ForwardIteartor2 first2, ForwardIteartor2 last2, Distance1 *, Distance2 *) {
+	Distance1 d1 = JD::distance(first1, last1);
+	Distance2 d2 = JD::distance(first2, last2);
+
+	// std::cout << "d1 " << d1 << " d2 " << d2 << std::endl;
+
+	ForwardIteartor1 cur1 = first1;
+	ForwardIteartor2 cur2 = first2;
+
+	while (cur2 != last2) {
+		if (*cur1 == *cur2) {
+			++cur1;
+			++cur2;
+		} else {
+			if (d1 == d2) {
+				return last1;
+			} else {
+				cur1 = ++first1;
+				cur2 = first2;
+				--d1;
+			}
+		}
+	}
+	return first1;
+}
+
+template<class ForwardIteartor1, class ForwardIteartor2>
+inline ForwardIteartor1 search(ForwardIteartor1 first1, ForwardIteartor1 last1, ForwardIteartor2 first2, ForwardIteartor2 last2) {
+	return JD::__search(first1, last1, first2, last2, JD::distance_type(first1), distance_type(first2));
+}
+
+template<class InputIterator, class T>
+InputIterator find(InputIterator first, InputIterator last, const T &value) {
+	while (first != last && *first != value) {
+		++first;
+	}
+	return first;
+}
+
+template<class InputIterator, class Predicate>
+InputIterator find_if(InputIterator first, InputIterator last, Predicate pred) {
+	while (first != last && !pred(*first)) {
+		++first;
+	}
+	return first;
+}
+
+template<class ForwardIterator1, class ForwardIterator2>
+ForwardIterator1 __find_end(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2, JD::forward_iterator_tag, JD::forward_iterator_tag) {
+	if (first2 == last2) return last1;
+
+	ForwardIterator1 result = last1;
+	for(;;) {
+		ForwardIterator1 new_result = JD::search(first1, last1, first2, last2);
+		if (new_result == result) {
+			return result;
+		} else {
+			result = new_result;
+			first1 = new_result;
+			++first1;
+		}
+	}
+	return result;
+}
+
+// template<class ForwardIterator1, class ForwardIterator2>
+// ForwardIterator1 __find_end(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2, JD::bidirectional_iterator_tag, JD::bidirectional_iterator_tag) {
+// 	// if (first2 == last2) return last1;
+
+// 	// ForwardIterator1 result = last1;
+// 	// for(;;) {
+// 	// 	ForwardIterator1 new_result = JD::search(first1, last1, first2, last2);
+// 	// 	if (new_result == result) {
+// 	// 		return result;
+// 	// 	} else {
+// 	// 		result = new_result;
+// 	// 		first1 = new_result;
+// 	// 		++first1;
+// 	// 	}
+// 	// }
+// }
+
+template<class ForwardIterator1, class ForwardIterator2>
+inline ForwardIterator1 find_end(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2) {
+	typename JD::iterator_traits<ForwardIterator1>::iterator_category cat1;
+	typename JD::iterator_traits<ForwardIterator2>::iterator_category cat2;
+
+	// return JD::__find_end(first1, last1, first2, last2, cat1(), cat2());
+	if (first2 == last2) return last1;
+
+	ForwardIterator1 result = last1;
+	for(;;) {
+		ForwardIterator1 new_result = JD::search(first1, last1, first2, last2);
+		if (new_result == last1) {
+			return result;
+		} else {
+			result = new_result;
+			first1 = new_result;
+			++first1;
+		}
+	}
+	return result;
+}
+
+template<class InputIterator, class ForwardIterator>
+InputIterator find_first_of(InputIterator first1, InputIterator last1, ForwardIterator first2, ForwardIterator last2) {
+	for (; first1 != last1; ++first1) {
+		for (ForwardIterator iter = first2; iter != last2; ++iter) {
+			if (*first1 == *iter) {
+				return first1;
+			}
+		}
+	}
+	return last1;
+}
+
+template<class InputIterator, class ForwardIterator, class BinaryPredicate>
+InputIterator find_first_of(InputIterator first1, InputIterator last1, ForwardIterator first2, ForwardIterator last2, BinaryPredicate comp) {
+	for (; first1 != last1; ++first1) {
+		for (ForwardIterator iter = first2; iter != last2; ++iter) {
+			if (comp(*first1, *iter)) {
+				return first1;
+			}
+		}
+	}
+	return last1;
+}
+
+template<class ForwardIteartor, class Integer, class T>
+inline ForwardIteartor search_n(ForwardIteartor first, ForwardIteartor last, Integer count, const T &value) {
+	if (count <= 0) {
+		return first;
+	} else {
+		first = JD::find(first, last, value);
+		while (first != last) {
+			Integer n = count - 1;
+			ForwardIteartor i = first;
+			++i;
+			while (i != last && n != 0 && *i == value) {
+				++i;
+				--n;
+			}
+			if (n == 0) {
+				return first;
+			} else {
+				first = JD::find(i, last, value);
+			}
+		}
+		return last;
+	}
+}
+
+template<class ForwardIteartor, class Integer, class T, class BinaryPredicate>
+inline ForwardIteartor search_n(ForwardIteartor first, ForwardIteartor last, Integer count, const T &value, BinaryPredicate binary_pred) {
+	if (count <= 0) {
+		return first;
+	} else {
+		while (first != last) {
+			if (binary_pred(*first, value)) break;
+			++first;
+		}
+
+		while (first != last) {
+			Integer n = count - 1;
+			ForwardIteartor i = first;
+			++i;
+			while (i != last && n != 0 && binary_pred(*i, value)) {
+				++i;
+				--n;
+			}
+			if (n == 0) {
+				return first;
+			} else {
+				while (i != last) {
+					if (binary_pred(*i, value)) break;
+					++i;
+				}
+				first = i;
+			}
+		}
+		return last;
+	}
+}
+
+template<class ForwardIterator, class Generate>
+void generate(ForwardIterator first, ForwardIterator last, Generate gen) {
+	for (; first != last; ++first) {
+		*first = gen();
+	}
+}
+
+template<class OutputIterator, class Size, class Generate>
+OutputIterator generate_n(OutputIterator first, Size n, Generate gen) {
+	for (; n > 0;  --n, ++first) {
+		*first = gen();
+	}
+	return first;
+}
+
+template<class InputIterator1, class InputIterator2>
+bool includes(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2) {
+	while (first1 != last1 && first2 != last2) {
+		if (*first2 < *first1) {
+			return false;
+		} else if (*first1 < *first2) {
+			++first1;
+		} else {
+			++first1;
+			++first2;
+		}
+	}
+	return first2 == last2;
+}
+
+template<class InputIterator1, class InputIterator2, class Compare>
+bool includes(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, Compare comp) {
+	while (first1 != last1 && first2 != last2) {
+		if (comp(*first2, *first1)) {
+			return false;
+		} else if (comp(*first1, *first2)) {
+			++first1;
+		} else {
+			++first1;
+			++first2;
+		}
+	}
+	return first2 == last2;
+}
+
+template<class ForwardIterator>
+ForwardIterator max_element(ForwardIterator first, ForwardIterator last) {
+	if (first == last) return first;
+	ForwardIterator result = first;
+	while(++first != last) {
+		if (*result < *first) result = first;
+	}
+	return result;
+}
+
+template<class ForwardIterator, class Compare>
+ForwardIterator max_element(ForwardIterator first, ForwardIterator last, Compare comp) {
+	if (first == last) return first;
+	ForwardIterator result = first;
+	while(++first != last) {
+		if (comp(*result, *first)) result = first;
+	}
+	return result;
+}
+
+template<class ForwardIterator>
+ForwardIterator min_element(ForwardIterator first, ForwardIterator last) {
+	if (first == last) return first;
+	ForwardIterator result = first;
+	while(++first != last) {
+		if (*first < *result) result = first;
+	}
+	return result;
+}
+
+template<class ForwardIterator, class Compare>
+ForwardIterator min_element(ForwardIterator first, ForwardIterator last, Compare comp) {
+	if (first == last) return first;
+	ForwardIterator result = first;
+	while(++first != last) {
+		if (comp(*first, *result)) result = first;
+	}
+	return result;
+}
+
+template<class InputIterator1, class InputIterator2, class OutputIterator>
+OutputIterator merge(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result) {
+	while(first1 != last1 && first2 != last2) {
+		if (*first2 < *first1) {
+			*result = *first2;
+			++first2;
+		} else {
+			*result = *first1;
+			++first1;
+		}
+		++result;
+	}
+	return JD::copy(first2, last2, JD::copy(first1, last1, result));
+}
+
+template<class InputIterator1, class InputIterator2, class OutputIterator, class Compare>
+OutputIterator merge(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, Compare comp) {
+	while(first1 != last1 && first2 != last2) {
+		if (comp(*first2, *first1)) {
+			*result = *first2;
+			++first2;
+		} else {
+			*result = *first1;
+			++first1;
+		}
+		++result;
+	}
+	return JD::copy(first2, last2, JD::copy(first1, last1, result));
+}
+
+template<class BidirectionalIterator, class Predicate>
+BidirectionalIterator partition(BidirectionalIterator first, BidirectionalIterator last, Predicate pred) {
+	for (;;) {
+		for(;;) {
+			if (first == last) 
+				return first;
+			else if (pred(*first)) 
+				 // 不符合移动条件
+				 ++first;
+			else
+				break;
+		}
+		--last;
+		for(;;) {
+			if (first == last)
+				return first;
+			else if (!pred(*last))
+				--last;
+			else
+			 	break;
+		}
+		JD::iter_swap(first, last);
+		++first;
+	}
+}
+
+template<class ForwardIterator, class OutputIterator, class T>
+ForwardIterator remove_copy(ForwardIterator first, ForwardIterator last, OutputIterator result, const T& value) {
+	for (; first != last; ++first) {
+		if (*first != value) {
+			*result = *first;
+			++result;
+		}
+	}
+	return result;
+}
+
+template<class ForwardIterator, class OutputIterator, class Predicate>
+ForwardIterator remove_copy_if(ForwardIterator first, ForwardIterator last, OutputIterator result, Predicate pred) {
+	for (; first != last; ++first) {
+		if (!pred(*first)) {
+			*result = *first;
+			++result;
+		}
+	}
+	return result;
+}
+
+template<class ForwardIterator, class T>
+ForwardIterator remove(ForwardIterator first, ForwardIterator last, const T& value) {
+	first = JD::find(first, last, value);
+	ForwardIterator next = first;
+	return  first == last ? first : JD::remove_copy(++next, last, first, value);
+}
+
+template<class ForwardIterator, class Predicate>
+ForwardIterator remove_if(ForwardIterator first, ForwardIterator last, Predicate pred) {
+	first = JD::find_if(first, last, pred);
+	ForwardIterator next = first;
+	return  first == last ? first : JD::remove_copy_if(++next, last, first, pred);
+}
+
+template<class ForwardIterator, class T>
+void replace(ForwardIterator first, ForwardIterator last, const T &old_value, const T &new_value) {
+	for (; first != last; ++first) {
+		if (*first == old_value) {
+			*first = new_value;
+		}
+	}
+}
+
+template<class ForwardIterator, class OutputIterator, class T>
+void replace_copy(ForwardIterator first, ForwardIterator last, OutputIterator result, const T &old_value, const T &new_value) {
+	for (; first != last; ++first, ++result) {
+		*result = *first == old_value ? new_value : *first;
+	}
+}
+
+template<class ForwardIterator, class Predicate, class T>
+void replace_if(ForwardIterator first, ForwardIterator last, Predicate pred, const T &new_value) {
+	for (; first != last; ++first) {
+		if (pred(*first)) {
+			*first = new_value;
+		}
+	}
+}
+
+template<class ForwardIterator, class OutputIterator, class Predicate, class T>
+void replace_copy_if(ForwardIterator first, ForwardIterator last, OutputIterator result, Predicate pred, const T &new_value) {
+	for (; first != last; ++first, ++result) {
+		*result = pred(*first) ? new_value : *first;
+	}
+}
+
+template<class BidirectionalIterator>
+inline void __reverse(BidirectionalIterator first, BidirectionalIterator last, JD::bidirectional_iterator_tag) {
+	for(;;) {
+		if (first == last || first == --last) {
+			return;
+		} else {
+			JD::iter_swap(first++, last);
+		}
+	}
+}
+
+template<class RandomAccessIterator>
+inline void __reverse(RandomAccessIterator first, RandomAccessIterator last, JD::random_access_iterator_tag) {
+	while (first < last) {
+		JD::iter_swap(first++, --last);
+	}
+}
+
+template<class BidirectionalIterator>
+inline void reverse(BidirectionalIterator first, BidirectionalIterator last) {
+	JD::__reverse(first, last, JD::iterator_category(first));
+}
+
+template<class BidirectionalIterator, class OutputIterator>
+OutputIterator reverse_copy(BidirectionalIterator first, BidirectionalIterator last, OutputIterator result) {
+	while (first != last) {
+		--last,
+		*result = *last;
+		++result;
+	}
+	return result;
+}
+
+template<class ForwardIterator, class Distance>
+void __rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last, Distance*, JD::forward_iterator_tag) {
+	for (ForwardIterator i = middle;;) {
+		JD::iter_swap(first, i);
+		++first;
+		++i;
+		// 以下判断是前段[first, middle) 先结束还是 后段[middle, last) 先结束
+		if (first == middle) {
+			if (i == last) return;
+			middle = i;
+		} else if (i == last) {
+			i = middle;
+		}
+	}
+}
+
+template<class BidirectionalIterator, class Distance>
+void __rotate(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, Distance*, JD::bidirectional_iterator_tag) {
+	JD::reverse(first, middle);
+	JD::reverse(middle, last);
+	JD::reverse(first, last);
+}
+
+template<class EuclideanRingElement>
+EuclideanRingElement __gcd(EuclideanRingElement m, EuclideanRingElement n) {
+	while (n != 0) {
+		EuclideanRingElement t = m % n;
+		m = n; 
+		n = t;
+	}
+	return m;
+}
+
+template<class RandomAccessIterator, class Distance, class T>
+void __rotate_cycle(RandomAccessIterator first, RandomAccessIterator last, RandomAccessIterator initial, Distance shift, T*) {
+	T value = *initial;
+	RandomAccessIterator ptr1 = initial;
+	RandomAccessIterator ptr2 = ptr1 + shift;
+	while (ptr2 != initial) {
+		*ptr1 = *ptr2;
+		ptr1 = ptr2;
+		if (last - ptr2 > shift) {
+			ptr2 += shift;
+		} else {
+			ptr2 = first + (shift - (last - ptr2));
+		}
+	}
+	*ptr1 = value;
+}
+
+template<class RandomAccessIterator, class Distance>
+void __rotate(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, Distance*, JD::random_access_iterator_tag) {
+	Distance n = __gcd(last - first, middle - first);
+	while (n--) {
+		JD::__rotate_cycle(first, last, first + n, middle - first, JD::value_type(first));
+	}
+}
+
+template<class ForwardIterator>
+inline void rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last) {
+	if (first == middle || middle == last) return;
+	JD::__rotate(first, middle, last, JD::distance_type(first), JD::iterator_category(first));
+}
+
+template<class ForwardIterator, class OutputIterator>
+inline OutputIterator rotate_copy(ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator result) {
+	return JD::copy(first, middle, JD::copy(middle, last, result));
+}
+
+template<class ForwardIterator1, class ForwardIterator2>
+ForwardIterator2 swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2) {
+	for (; first1 != last1; ++first1, ++first2) {
+		JD::iter_swap(first1, first2);
+	}
+	return first2;
+}
+
+template<class InputIterator, class OutputIterator, class UnaryOperation>
+UnaryOperation transform(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation op) {
+	for (; first != last; ++first, ++result) {
+		*result = op(*first);
+	}
+	return op;
+}
+
+template<class InputIterator1, class InputIterator2, class OutputIterator, class BinaryOperation>
+BinaryOperation transform(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, OutputIterator result, BinaryOperation binary_op) {
+	for (; first1 != last1; ++first1, ++first2, ++result) {
+		*result = binary_op(*first1, *first2);
+	}
+	return binary_op;
+}
+
+template<class InputIteartor, class OutputIterator>
+inline OutputIterator __unique_copy(InputIteartor first, InputIteartor last, OutputIterator result, JD::output_iterator_tag) {
+	typedef typename JD::iterator_traits<InputIteartor>::value_type v_t;
+	v_t value = *first;
+	*result = value;
+	while (++first != last) {
+		if (value != *first) {
+			value = *first;
+			*(++result) = value;
+		}
+	}
+	return ++result;
+}
+
+template<class InputIteartor, class ForwardIterator>
+ForwardIterator __unique_copy(InputIteartor first, InputIteartor last, ForwardIterator result, JD::forward_iterator_tag) {
+	*result = *last;
+	while(++first != last) {
+		if (*result != *first) *(++result) = *first;
+	}
+	return result;
+}
+
+template<class ForwardIterator, class OutputIterator>
+OutputIterator unique_copy(ForwardIterator first, ForwardIterator last, OutputIterator result) {
+	return JD::__unique_copy(first, last, result, JD::iterator_category(result));
+}
+
+template<class ForwardIterator>
+ForwardIterator unique(ForwardIterator first, ForwardIterator last) {
+	first = JD::adjacent_find(first, last);
+	return JD::unique_copy(first, last, first);
+}
+
 JD_SPACE_END
 
 #endif
