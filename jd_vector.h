@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <ostream>
 
 JD_SPACE_BEGIN
 
@@ -74,8 +75,9 @@ public:
 	explicit vector(size_type n) { fill_initialize(n, T()); }
 	template<class InputIterator>
 	vector(InputIterator first, InputIterator last): start(0), finish(0), end_of_storage(0) {
-		for (;first != last; ++first) {
-			push_back(*first);
+		fill_initialize(last - first, T());
+		for (size_type i = 0; first != last; ++first, ++i) {
+			*(begin() + i) = *first;
 		}
 	}
 
@@ -224,14 +226,14 @@ void vector<T, Alloc>::insert(iterator position, size_type n, const T &x) {
 				// 将原来位置上的值赋值到各新位置上
 				JD::copy_backward(position, old_finish - n, old_finish);
 				// 从插入点开始填新值
-				std::fill(position, position + n, x);
+				JD::fill(position, position + n, x);
 			} else {
 				// 有可能在end插入；位置不够 《》p 127
 				JD::uninitialized_fill_n(finish, n - elems_after, x_copy);
 				finish += n - elems_after;
 				JD::uninitialized_copy(position, old_finish, finish);
 				finish += elems_after;
-				std::fill(position, old_finish, x_copy);
+				JD::fill(position, old_finish, x_copy);
 			}
 		} else {
 			// 备用空间小于新增元素个数
