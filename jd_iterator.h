@@ -11,6 +11,7 @@
 #include "jd_macro.h"
 #include <cstddef>
 #include <iostream>
+#include <vector>
 
 JD_SPACE_BEGIN
 
@@ -57,6 +58,24 @@ struct iterator_traits<const T *> {
 	typedef random_access_iterator_tag 	iterator_category;
 	typedef ptrdiff_t 					difference_type;
 };
+
+template<>
+struct iterator_traits<typename std::vector<int>::iterator > {
+	typedef int 							value_type;
+    typedef int& 							reference;
+    typedef int* 							pointer;
+	typedef random_access_iterator_tag 	iterator_category;
+	typedef ptrdiff_t 					difference_type;
+};
+
+// template<>
+// struct iterator_traits<std::vector<const int>::iterator > {
+// 	typedef const int 							value_type;
+//     typedef const int& 							reference;
+//     typedef const int* 							pointer;
+// 	typedef random_access_iterator_tag 	iterator_category;
+// 	typedef ptrdiff_t 					difference_type;
+// };
 
 template<class T>
 struct iterator_traits<T []> {
